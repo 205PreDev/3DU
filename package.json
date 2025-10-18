@@ -1,0 +1,48 @@
+{
+  "name": "edu-3d-physics-simulator",
+  "version": "1.0.0",
+  "description": "Educational 3D Physics Simulator for learning physics through interactive visualization",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^0.158.0",
+    "@react-three/fiber": "^8.15.11",
+    "@react-three/drei": "^9.88.13",
+    "zustand": "^4.4.7",
+    "styled-components": "^6.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@types/three": "^0.158.3",
+    "@types/styled-components": "^5.1.34",
+    "@vitejs/plugin-react": "^4.1.1",
+    "typescript": "^5.2.2",
+    "eslint": "^8.53.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "education",
+    "physics",
+    "3d",
+    "simulator",
+    "three.js",
+    "react",
+    "typescript"
+  ],
+  "author": "Educational Physics Simulator Team",
+  "license": "MIT"
+}
