@@ -33,7 +33,9 @@ export class PitchSimulator {
     _time: number
   ) => {
     // 현재 상태에서의 힘 계산
-    const force = calculateTotalForce(velocity, this.params.spinAxis, this.params)
+    // spinAxis는 정규화된 방향 벡터를 전달
+    const normalizedSpinAxis = vec3.normalize(this.params.spinAxis)
+    const force = calculateTotalForce(velocity, normalizedSpinAxis, this.params)
     const acceleration = calculateAcceleration(force, this.params.mass)
 
     return {
@@ -57,17 +59,14 @@ export class PitchSimulator {
     let state: SimulationState = {
       position: vec3.clone(this.params.releasePosition),
       velocity: initialVelocity,
-      spin: vec3.create(
-        this.params.spinAxis.x * this.params.spinRate,
-        this.params.spinAxis.y * this.params.spinRate,
-        this.params.spinAxis.z * this.params.spinRate
-      ),
+      spin: vec3.normalize(this.params.spinAxis),  // 정규화된 회전축 방향만 저장
       time: 0
     }
 
     const trajectory: Vector3[] = [vec3.clone(state.position)]
     let maxHeight = state.position.y
     let plateHeight = state.position.y
+    let plateX = 0  // 홈플레이트 통과 시 x 좌표 추가
     let reachedPlate = false
 
     // 시뮬레이션 루프
@@ -92,6 +91,7 @@ export class PitchSimulator {
       // 홈플레이트 도달 체크 (z 좌표가 -18.44m 이하)
       if (!reachedPlate && state.position.z <= -PHYSICS_CONSTANTS.MOUND_TO_PLATE) {
         plateHeight = state.position.y
+        plateX = state.position.x  // 플레이트 통과 시의 x 좌표 기록
         reachedPlate = true
       }
 
@@ -102,9 +102,9 @@ export class PitchSimulator {
     }
 
     // 결과 계산
-    const horizontalBreak = state.position.x - this.params.releasePosition.x
+    const horizontalBreak = plateX - this.params.releasePosition.x
     const verticalDrop = this.params.releasePosition.y - plateHeight
-    const isStrike = this.checkStrike(state.position.x, plateHeight)
+    const isStrike = this.checkStrike(plateX, plateHeight)  // 플레이트 통과 시의 위치로 판정
 
     return {
       trajectory,

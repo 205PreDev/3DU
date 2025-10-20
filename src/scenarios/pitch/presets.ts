@@ -30,7 +30,9 @@ export const PITCH_PRESETS: Record<PitchType, PitchParameters> = {
     releaseHeight: 2.0,
     releasePosition: { x: 0, y: 2.0, z: 0 },
     spinRate: 2800,      // 강한 회전
-    spinAxis: { x: 0.3, y: -0.7, z: 0.2 },  // 탑스핀 + 측면
+    // 탑스핀(아래로 휘어짐) + 약간의 측면 회전
+    // 회전축: 위에서 봤을 때 시계방향 (우타자 기준 안쪽으로 약간)
+    spinAxis: { x: 0.38, y: -0.89, z: 0.25 },  // 정규화됨: length ≈ 1.0
     airDensity: PHYSICS_CONSTANTS.AIR_DENSITY_SEA_LEVEL,
     gravity: PHYSICS_CONSTANTS.GRAVITY,
     dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT,
@@ -46,7 +48,9 @@ export const PITCH_PRESETS: Record<PitchType, PitchParameters> = {
     releaseHeight: 2.0,
     releasePosition: { x: 0, y: 2.0, z: 0 },
     spinRate: 2600,
-    spinAxis: { x: 0.8, y: 0.2, z: -0.1 },  // 주로 횡 회전
+    // 주로 횡 회전 (우타자 바깥쪽으로 휘어짐)
+    // 회전축: 거의 수평에 가까움
+    spinAxis: { x: 0.97, y: 0.24, z: 0 },  // 정규화됨: length ≈ 1.0
     airDensity: PHYSICS_CONSTANTS.AIR_DENSITY_SEA_LEVEL,
     gravity: PHYSICS_CONSTANTS.GRAVITY,
     dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT,
@@ -62,7 +66,8 @@ export const PITCH_PRESETS: Record<PitchType, PitchParameters> = {
     releaseHeight: 2.0,
     releasePosition: { x: 0, y: 2.0, z: 0 },
     spinRate: 1500,      // 낮은 회전수
-    spinAxis: { x: 0, y: 0.9, z: 0.1 },  // 약한 백스핀
+    // 약한 백스핀 (직구보다 훨씬 적은 회전)
+    spinAxis: { x: 0, y: 0.99, z: 0.11 },  // 정규화됨: length ≈ 1.0
     airDensity: PHYSICS_CONSTANTS.AIR_DENSITY_SEA_LEVEL,
     gravity: PHYSICS_CONSTANTS.GRAVITY,
     dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT * 1.1,  // 항력이 더 큼

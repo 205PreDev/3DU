@@ -37,17 +37,17 @@ export function calculateDrag(
 
 /**
  * 마그누스 효과 계산 (Magnus Effect)
- * F_magnus = 0.5 * C_L * ρ * A * |v|² * (ω × v̂)
+ * F_magnus = C_L * ρ * π * r³ * |v| * (ω × v̂)
  *
  * 공의 회전으로 인해 발생하는 양력
  *
  * @param velocity 속도 벡터 (m/s)
- * @param spin 회전 벡터 (rpm)
+ * @param spinAxis 회전축 방향 벡터 (정규화된 단위 벡터)
  * @param params 물리 파라미터
  */
 export function calculateMagnus(
   velocity: Vector3,
-  spin: Vector3,
+  spinAxis: Vector3,
   params: PitchParameters
 ): Vector3 {
   const speed = vec3.length(velocity)
@@ -55,27 +55,27 @@ export function calculateMagnus(
   // 속도가 0이면 마그누스 효과도 0
   if (speed === 0) return vec3.create(0, 0, 0)
 
-  // rpm을 rad/s로 변환
-  const spinRadPerSec = vec3.multiply(spin, (2 * Math.PI) / 60)
-  const spinMagnitude = vec3.length(spinRadPerSec)
-
   // 회전이 없으면 마그누스 효과도 0
-  if (spinMagnitude === 0) return vec3.create(0, 0, 0)
+  if (params.spinRate === 0) return vec3.create(0, 0, 0)
+
+  // rpm을 rad/s로 변환
+  const spinRadPerSec = params.spinRate * (2 * Math.PI) / 60
 
   const velocityDirection = vec3.normalize(velocity)
-  const spinDirection = vec3.normalize(spinRadPerSec)
 
   // ω × v̂ (회전축과 속도 방향의 외적)
-  const crossProduct = vec3.cross(spinDirection, velocityDirection)
+  // spinAxis는 이미 정규화된 방향 벡터
+  const forceDirection = vec3.cross(spinAxis, velocityDirection)
 
+  // 마그누스 힘 계산
+  // 표준 공식: F = C_L * ρ * π * r³ * |v| * |ω| * (ω̂ × v̂)
+  // 여기서는 실용적 근사: F = 0.5 * C_L * ρ * A * v² * (r * ω / v) * (ω̂ × v̂)
+  // 단순화: F = 0.5 * C_L * ρ * A * v * (r * ω) * (ω̂ × v̂)
   const area = Math.PI * params.radius * params.radius
-
-  // F = 0.5 * C_L * ρ * A * v² * |ω|
-  // 실제로는 회전수에 따라 C_L이 변하지만, 여기서는 상수로 근사
   const magnusMagnitude =
-    0.5 * params.liftCoefficient * params.airDensity * area * speed * speed * spinMagnitude
+    0.5 * params.liftCoefficient * params.airDensity * area * speed * (params.radius * spinRadPerSec)
 
-  return vec3.multiply(crossProduct, magnusMagnitude)
+  return vec3.multiply(forceDirection, magnusMagnitude)
 }
 
 /**
@@ -84,12 +84,12 @@ export function calculateMagnus(
  */
 export function calculateTotalForce(
   velocity: Vector3,
-  spin: Vector3,
+  spinAxis: Vector3,
   params: PitchParameters
 ): Vector3 {
   const gravity = calculateGravity(params.mass, params.gravity)
   const drag = calculateDrag(velocity, params)
-  const magnus = calculateMagnus(velocity, spin, params)
+  const magnus = calculateMagnus(velocity, spinAxis, params)
 
   return vec3.add(vec3.add(gravity, drag), magnus)
 }
