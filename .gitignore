@@ -11,7 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
-docs
+// docs
+architecture-improvements
+mermaid
+archive
+.claude
 
 # Editor directories and files
 .vscode/*
@@ -28,3 +32,8 @@ docs
 .env
 .env.local
 .env.production
+
+DIAGRAM_GUIDE.md
+TABLES_KOREAN.md
+설계명세서.md
+요구사항명세서.md

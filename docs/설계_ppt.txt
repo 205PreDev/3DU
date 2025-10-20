@@ -1,0 +1,633 @@
+[슬라이드 1]
+프로젝트 설계 명세서
+
+교육용 3D 물리 시뮬레이터
+야구 투구 모듈
+
+작성자: ㅇㅇㅎ, ㄱㅌㅎ
+
+
+[슬라이드 2]
+목차
+
+1. 개요
+2. 프로젝트 구조
+3. 모듈 설계
+4. 파일 구조 및 데이터베이스 설계
+5. 요구 분석 참조표
+6. 제약사항
+7. 참고 사항
+
+
+[슬라이드 3]
+1. 개요
+프로젝트 목표
+
+고등학교 및 대학교 물리 교육을 위한 확장 가능한 웹 기반 3D 물리 시뮬레이터 플랫폼 개발
+
+1차 모듈: 야구 투구 시뮬레이터
+향후 확장: 포물선 운동, 진자 운동 등 다양한 물리 시나리오
+
+
+[슬라이드 4]
+주요 목표
+
+1. 확장 가능한 아키텍처: 새 시나리오 추가 시 코드 중복 최소화 (재사용률 80% 이상)
+2. 물리 법칙의 직관적 시각화 (힘 벡터 표시, 슬로우 모션)
+3. 저사양 PC(Intel 9세대 CPU)에서도 원활한 실행 (30fps 이상)
+4. 사용자 계정 및 소셜 기능을 통한 참여 유도
+5. 교육기관 대상 B2B 판매를 고려한 모듈화 설계
+
+
+[슬라이드 5]
+하드웨어 개발 환경
+
+개발 PC: Intel Core i5 이상, 8GB RAM, SSD
+테스트 환경 (저사양): Intel Core i3-9100 (9세대), 4GB RAM, HDD
+테스트 환경 (권장): Intel Core i5-12400, 16GB RAM, SSD
+
+
+[슬라이드 6]
+소프트웨어 개발 환경
+프론트엔드
+
+언어: TypeScript 5.x (strict mode)
+프레임워크: React 18.3.x
+3D 엔진: Three.js r170 (via @react-three/fiber 8.x)
+상태 관리: React Context API (제네릭 패턴 적용)
+스타일링: Styled-components 6.x
+빌드 도구: Vite 5.x
+
+
+[슬라이드 7]
+소프트웨어 개발 환경
+백엔드 및 데이터베이스
+
+백엔드: Node.js 20.x LTS, Express.js 4.x, JWT, bcrypt, Zod
+데이터베이스: PostgreSQL 16.x, Prisma 5.x, Redis 7.x (선택)
+개발 도구: VS Code, Git + GitHub, Postman, pgAdmin 4, Mermaid
+
+
+[슬라이드 8]
+주요 기능 1
+확장 가능한 물리 시뮬레이션 플랫폼 및 3D 시각화
+
+제네릭 BaseSimulator 추상 클래스
+시나리오별 Simulator 구현 (PitchSimulator, ProjectileSimulator 등)
+중력, 항력, 마그누스 효과 등 재사용 가능한 힘 계산 함수
+Three.js 기반 실시간 렌더링
+물리력 벡터 시각화 (중력: 파란색, 항력: 빨간색, 마그누스: 녹색)
+
+
+[슬라이드 9]
+주요 기능 2
+리플레이 시스템 및 다중 카메라
+
+재생/일시정지/정지, 속도 조절 (0.25x ~ 2x)
+타임라인 스크러빙, 특정 시점 일시정지 및 힘 벡터 분석
+포수 시점, 투수 시점, 측면 시점, 공 추적 모드, 자유 카메라
+
+
+[슬라이드 10]
+주요 기능 3
+사용자 시스템 및 미니게임
+
+회원가입/로그인 (JWT 인증)
+시뮬레이션 저장 (최대 10개), URL 공유
+스트라이크 존 챌린지, 특정 구종 재현 챌린지
+리더보드 (점수 순위)
+9가지 구종 프리셋 (직구, 투심, 커브, 슬라이더, 커터, 체인지업, 싱커, 포크볼, 너클볼)
+
+
+[슬라이드 11]
+설계상 제약사항
+성능 및 기술 제약
+
+성능: Intel 9세대 CPU 30fps 이상, 로딩 < 3초, 계산 < 100ms, 폴리곤 < 1000개, 번들 < 2MB
+기술: 물리 엔진 자체 개발 (확장 가능 구조), WebGL 1.0 최소/2.0 권장
+UI/UX: 간단한 실루엣만, 투구 폼 애니메이션 없음, 좌완/우완 구분 없음
+
+
+[슬라이드 12]
+설계상 제약사항
+보안 및 데이터 제약
+
+보안: HTTPS 필수, bcrypt (salt rounds: 10), JWT (액세스 1시간, 리프레시 7일), XSS/CSRF 방어
+데이터: 사용자당 저장 최대 10개, 리더보드 상위 100명, 공유 URL 30일
+
+
+[슬라이드 13]
+참조된 개발문서
+
+요구사항 명세서: 요구사항명세서.md (FR-001 ~ FR-013)
+아키텍처 가이드: CLAUDE.md
+리팩토링 계획: architecture-improvements/ARCHITECTURE_REFACTORING_PLAN.md
+아키텍처 요약: ARCHITECTURE_SUMMARY.md
+다이어그램: mermaid/ (10개 파일)
+실행 가이드: docs/실행가이드.md
+작업 목록: docs/작업목록.md
+
+
+[슬라이드 14]
+2. 프로젝트 구조
+시스템 구조 개요
+
+3-Tier 아키텍처 기반
+확장 가능한 모듈화 설계 원리 적용
+
+
+[슬라이드 15]
+설계 원리
+
+1. 추상화의 원리: 복잡한 물리 계산을 BaseSimulator 추상 클래스로 개념화
+2. 정보 은닉: 각 모듈의 내부 구현 세부사항을 인터페이스 뒤에 숨김
+3. 단계적 분해: 물리 시뮬레이션 → 힘 계산 → 벡터 연산 → 수치 적분
+4. 모듈화: 각 모듈은 단일 책임 원칙(SRP) 준수, 느슨한 결합
+
+
+[슬라이드 16]
+시스템 계층 구조
+
+다이어그램 삽입: 시스템 3-Tier 아키텍처
+파일 위치: mermaid/1-architecture.mmd
+설명: 프레젠테이션 계층, 비즈니스 로직 계층, 데이터 계층으로 구성
+
+
+[슬라이드 17]
+주요 아키텍처 패턴
+
+Template Method: BaseSimulator 추상 클래스 - 시뮬레이션 흐름 표준화
+Factory: createSimulationContext() 함수 - 시나리오별 Context 자동 생성
+Strategy: eulerIntegrate() / rk4Integrate() - 수치 적분 알고리즘 교체
+Observer: React Context API - 상태 변경 시 구독 컴포넌트 자동 업데이트
+
+
+[슬라이드 18]
+시스템 컨텍스트 다이어그램
+
+다이어그램 삽입: 시스템 컨텍스트 다이어그램
+파일 위치: mermaid/1-architecture.mmd
+설명: 사용자, 웹 브라우저, 프론트엔드, 백엔드, 데이터베이스 간의 상호작용
+
+
+[슬라이드 19]
+프론트엔드 디렉토리 구조
+
+다이어그램 삽입: 프론트엔드 컴포넌트 계층도
+파일 위치: mermaid/5-component-tree.mmd
+설명: core (재사용 가능), scenarios (시나리오별), features (기능별) 구조
+
+
+[슬라이드 20]
+자료 사전
+프론트엔드 핵심 타입
+
+Vector3: 3D 벡터 { x, y, z }
+BaseSimulationParameters: 공통 파라미터 (mass, timeStep 등)
+BaseSimulationState: 시뮬레이션 상태 스냅샷
+BaseSimulationResult: 시뮬레이션 결과
+PitchParameters: 투구 파라미터 (initialSpeed, spinRate, spinAxis 등)
+PitchResult: 투구 결과 (isStrike, plateHeight, maxHeight 등)
+
+
+[슬라이드 21]
+자료 사전
+백엔드 데이터 모델 및 물리 상수
+
+User: id, email, passwordHash, nickname, createdAt
+Simulation: id, userId, scenarioType, parameters (JSON), result (JSON)
+Leaderboard: id, userId, gameType, score, createdAt
+
+GRAVITY: 9.81 m/s², AIR_DENSITY: 1.225 kg/m³
+BASEBALL_MASS: 0.145 kg, BASEBALL_RADIUS: 0.0366 m
+DRAG_COEFFICIENT: 0.4, LIFT_COEFFICIENT: 0.2, MOUND_TO_PLATE: 18.44 m
+
+
+[슬라이드 22]
+3. 모듈 설계
+3.1 물리 엔진 모듈
+
+모듈: BaseSimulator (추상 클래스)
+제네릭: <TParams, TState, TResult>
+공개 메서드: public simulate(): TResult
+추상 메서드: calculateForces(), shouldTerminate(), createInitialState(), buildResult()
+보호 메서드: integrate(state, dt, method)
+
+
+[슬라이드 23]
+물리 엔진 모듈
+오류 메시지 및 사용 파일
+
+오류:
+SIM_001: "시뮬레이션 시간 초과 (> 10초)"
+SIM_002: "초기 상태 생성 실패"
+SIM_003: "힘 계산 실패 (NaN 발생)"
+
+사용 파일:
+integrator.ts: eulerIntegrate, rk4Integrate
+forces.ts: calculateGravity, calculateDrag, calculateMagnus
+types-core-simulation.ts: Generic 타입 정의
+
+
+[슬라이드 24]
+물리 엔진 모듈
+Template Method 패턴
+
+simulate() 메서드 흐름:
+1) createInitialState() → 초기 상태 생성
+2) while (!shouldTerminate(state)):
+   calculateForces(state) → integrate(state, dt) → trajectory 기록
+3) buildResult(trajectory) → 결과 객체 생성
+4) return result
+
+성능: 실행 < 100ms (1000 타임스텝), 메모리 < 10MB
+
+
+[슬라이드 25]
+3.2 3D 렌더링 모듈
+ForceVectors
+
+모듈: ForceVectors (React 함수형 컴포넌트)
+Props: position (Vector3), forces (gravity, drag, magnus), scale, visible
+출력: Three.js <arrowHelper> 3개
+
+시각화 규칙:
+중력: 파란색 (#0000ff), 항상 아래
+항력: 빨간색 (#ff0000), 속도 반대
+마그누스: 녹색 (#00ff00), ω × v 방향
+
+
+[슬라이드 26]
+3.3 상태 관리 모듈
+createSimulationContext
+
+모듈: createSimulationContext (Factory 함수)
+입력: defaultParams, SimulatorClass, presets (선택)
+출력: Provider, useSimulation
+
+제공 기능:
+setParams(), setPreset(), runSimulation(), reset()
+
+Factory 패턴 장점: Context 수동 작성 불필요, 타입 안정성 보장
+
+
+[슬라이드 27]
+3.4 UI 모듈
+GenericInputPanel
+
+모듈: GenericInputPanel (React 함수형 컴포넌트)
+Props: params, onChange, metadata (InputFieldMetadata[]), presets
+
+필드 타입: number, slider, select, vector, toggle
+기능: 메타데이터 기반 UI 자동 생성, 조건부 표시, 유효성 검증
+재사용성: 투구/포물선 시나리오 모두 사용, 코드 중복 90% 제거
+
+
+[슬라이드 28]
+3.5 사용자 인증 모듈
+auth.service
+
+모듈: auth.service (TypeScript 클래스)
+메서드: register(), login(), verifyToken(), refreshAccessToken()
+
+오류: AUTH_001 (이메일 중복 409), AUTH_002 (로그인 실패 401), AUTH_003 (토큰 만료 401), AUTH_004 (무효 토큰 403)
+
+사용: bcrypt (해싱/검증), jsonwebtoken (JWT 생성/검증), prisma (DB 접근)
+
+
+[슬라이드 29]
+사용자 인증 모듈
+회원가입 및 로그인 흐름
+
+회원가입:
+1. 이메일 중복 확인
+2. 비밀번호 해싱 (bcrypt, salt rounds: 10)
+3. DB 사용자 생성
+4. 액세스 토큰 (1시간) + 리프레시 토큰 (7일) 생성
+
+로그인:
+1. 이메일로 사용자 조회
+2. 비밀번호 검증
+3. JWT 토큰 쌍 생성 및 반환
+
+
+[슬라이드 30]
+3.6 데이터 저장 모듈
+simulations.service
+
+모듈: simulations.service (TypeScript 클래스)
+메서드: saveSimulation(), getMySimulations(), getSimulationById(), deleteSimulation(), shareSimulation(), getSharedSimulation()
+
+저장 제한: 사용자당 최대 10개
+공유 기능: 32바이트 랜덤 토큰, 30일 유효
+데이터 구조: parameters와 result는 JSON 컬럼 (유연한 스키마)
+
+
+[슬라이드 31]
+3.7 리플레이 모듈
+ReplayControls
+
+모듈: ReplayControls (React 함수형 컴포넌트)
+Props: trajectory, onTimeChange, playbackSpeed, onSpeedChange
+State: isPlaying, currentTime, duration
+
+재생 제어: requestAnimationFrame, 속도 조절 (0.25x ~ 2x)
+타임라인 스크러빙: <input type="range">로 즉시 이동
+시각적 피드백: 재생/일시정지 아이콘, 진행 바
+
+
+[슬라이드 32]
+3.8 카메라 제어 모듈
+CameraController
+
+모듈: CameraController (React 함수형 컴포넌트)
+Props: preset (catcher/pitcher/side/follow/free), targetPosition
+
+프리셋:
+catcher: [-20, 1.5, 0] → [0, 1.2, 0]
+pitcher: [2, 1.8, 0] → [0, 1.2, -18]
+side: [0, 3, -9] → [0, 1.2, -9]
+follow: 공 위치 추적 (useFrame)
+free: OrbitControls 활성화
+
+
+[슬라이드 33]
+3.9 미니게임 모듈
+minigame.service
+
+모듈: minigame.service (TypeScript 클래스)
+메서드: submitScore(), getLeaderboard(), getMyRank()
+
+게임 타입:
+strike-zone: 스트라이크 존 명중률 (정확도 점수)
+pitch-matching: 특정 구종 재현도 (유사도 점수)
+max-break: 최대 변화량 경쟁 (거리 점수)
+
+리더보드 캐싱: Redis (TTL 60초)
+
+
+[슬라이드 34]
+3.10 공유 기능 모듈
+ShareButton
+
+모듈: ShareButton (React 함수형 컴포넌트)
+Props: simulationId, onShare
+
+공유 흐름:
+1. "공유" 버튼 클릭
+2. POST /api/simulations/:id/share
+3. shareToken 수신
+4. URL 생성 및 클립보드 복사
+5. 토스트 메시지 표시
+
+
+[슬라이드 35]
+3.11 성능 최적화 모듈
+PerformanceMonitor
+
+모듈: PerformanceMonitor (React 컴포넌트 + 유틸리티)
+Props: onFpsDrop
+FPS 모니터링: stats.js, 1초마다 평균 FPS 계산, < 30 시 LOD 조정
+
+최적화 전략:
+Code Splitting, Memoization, 객체 풀링
+LOD: 거리별 구체 세그먼트 조정 (32/16/8)
+
+
+[슬라이드 36]
+3.12 에러 처리 모듈
+errorHandler
+
+모듈: errorHandler (Express.js 미들웨어)
+에러 분류: Validation (400), Authentication (401), Authorization (403), Not Found (404), Internal Server (500)
+
+표준 에러 응답 형식:
+{ "error": { "code": "AUTH_002", "message": "...", "statusCode": 401 } }
+
+프로덕션: 스택 트레이스 숨김, 로그 파일 저장
+개발: 스택 트레이스 포함, 콘솔 출력
+
+
+[슬라이드 37]
+4. 파일 구조 및 데이터베이스 설계
+ERD
+
+다이어그램 삽입: 데이터베이스 ERD
+파일 위치: mermaid/3-erd.mmd
+설명: User, Simulation, Leaderboard 테이블 간의 관계 (1:N)
+
+
+[슬라이드 38]
+테이블 상세 설계
+User 테이블
+
+컬럼:
+id (UUID, PRIMARY KEY): 사용자 고유 ID
+email (VARCHAR(255), UNIQUE, NOT NULL): 이메일 (로그인 ID)
+passwordHash (VARCHAR(255), NOT NULL): bcrypt 해시
+nickname (VARCHAR(50), NOT NULL): 닉네임
+createdAt (TIMESTAMP, NOT NULL, DEFAULT NOW()): 가입 일시
+
+인덱스: idx_user_email (UNIQUE)
+
+
+[슬라이드 39]
+테이블 상세 설계
+Simulation 테이블
+
+컬럼:
+id (UUID, PRIMARY KEY), userId (UUID, FK)
+scenarioType (VARCHAR(50), NOT NULL)
+parameters (JSONB, NOT NULL), result (JSONB, NOT NULL)
+shareToken (VARCHAR(64), UNIQUE), shareExpiresAt (TIMESTAMP)
+createdAt (TIMESTAMP, NOT NULL, DEFAULT NOW())
+
+인덱스: idx_simulation_userId, idx_simulation_shareToken
+제약: 사용자당 최대 10개
+
+
+[슬라이드 40]
+테이블 상세 설계
+Leaderboard 테이블
+
+컬럼:
+id (UUID, PRIMARY KEY), userId (UUID, FK)
+gameType (VARCHAR(50), NOT NULL)
+score (INTEGER, NOT NULL)
+createdAt (TIMESTAMP, NOT NULL, DEFAULT NOW())
+
+인덱스:
+idx_leaderboard_gameType_score (gameType, score DESC) - 순위 조회 최적화
+idx_leaderboard_userId
+
+
+[슬라이드 41]
+공유 자료
+환경 변수
+
+프론트엔드:
+VITE_API_BASE_URL=http://localhost:4000
+VITE_ENABLE_ANALYTICS=false
+
+백엔드:
+DATABASE_URL, JWT_SECRET, JWT_ACCESS_EXPIRY (1h), JWT_REFRESH_EXPIRY (7d)
+REDIS_URL, PORT (4000)
+
+
+[슬라이드 42]
+파일 접근 방법
+DBMS 선정
+
+DBMS: PostgreSQL 16.x
+
+선정 이유:
+1. JSONB 타입 지원 (유연한 스키마)
+2. 복잡한 쿼리 성능 우수
+3. 오픈소스, 무료
+4. Prisma ORM 완벽 지원
+
+
+[슬라이드 43]
+5. 요구 분석 참조표 1
+
+FR-001: 단순 모드 시뮬레이션 (GenericInputPanel, PitchSimulator) - 완료
+FR-002: 전문가 모드 파라미터 조정 (GenericInputPanel) - 완료
+FR-003: 물리 계산 엔진 (BaseSimulator, Forces, Integrator) - 완료
+FR-004: 3D 시각화 (Scene3D, Ball3D, TrajectoryLine) - 완료
+FR-005: 결과 분석 (ResultPanel) - 완료
+
+
+[슬라이드 44]
+5. 요구 분석 참조표 2
+
+FR-006: 물리력 벡터 시각화 (ForceVectors) - 완료
+FR-007: 리플레이 및 슬로우 모션 (ReplayControls) - 완료
+FR-008: 다중 카메라 앵글 (CameraController) - 완료
+FR-009: 사용자 계정 시스템 (auth.service, auth.middleware) - 완료
+FR-010: 시뮬레이션 저장 및 공유 (simulations.service, ShareButton) - 완료
+
+
+[슬라이드 45]
+5. 요구 분석 참조표 3
+
+FR-011: 미니게임 모드 (minigame.service) - 완료
+FR-012: 리더보드 및 랭킹 (leaderboard 테이블, Redis 캐싱) - 완료
+FR-013: 확장 가능한 아키텍처 시스템 (BaseSimulator, createSimulationContext, GenericInputPanel) - 완료
+코드 재사용률 80% 달성
+
+
+[슬라이드 46]
+6. 제약사항
+성능 및 기술 제약
+
+성능:
+프레임레이트: 30fps 이상 (Intel 9세대)
+시뮬레이션 계산: < 100ms
+초기 로딩: < 3초 (Lighthouse)
+번들 크기: < 2MB (gzip)
+메모리: < 50MB
+
+기술:
+브라우저: Chrome 90+, Firefox 88+, Safari 14+ (WebGL 2.0)
+Node.js: 20.x LTS, PostgreSQL: 16.x, TypeScript: 5.x strict
+
+
+[슬라이드 47]
+6. 제약사항
+비즈니스 및 보안 제약
+
+비즈니스:
+저장 한도: 사용자당 10개
+공유 기한: 30일
+리더보드: 상위 100명
+
+보안:
+HTTPS 필수 (프로덕션)
+bcrypt salt rounds: 10
+JWT: 액세스 1시간, 리프레시 7일
+CORS: 화이트리스트 기반
+
+
+[슬라이드 48]
+7. 참고 사항
+아키텍처 개선 효과
+
+타입 재사용률: 0% → 80% (+80%)
+코드 중복: 높음 (500줄) → 거의 없음 (135줄) (-73%)
+신규 시나리오 추가 시간: 2일 → 30분 (-92%)
+확장성 점수: 2.0/5.0 → 4.75/5.0 (+137%)
+
+
+[슬라이드 49]
+핵심 설계 패턴 요약
+
+Template Method 패턴 (BaseSimulator): 공통 시뮬레이션 흐름 표준화
+Factory 패턴 (createSimulationContext): 시나리오별 Context 자동 생성
+Strategy 패턴: eulerIntegrate() vs rk4Integrate() 교체 가능
+Observer 패턴 (React Context): 상태 변경 시 자동 업데이트
+
+
+[슬라이드 50]
+다이어그램 목록
+
+mermaid/1-architecture.mmd: 시스템 아키텍처 (3-Tier)
+mermaid/2-simulation-sequence.mmd: 시뮬레이션 실행 흐름
+mermaid/3-erd.mmd: 데이터베이스 ERD
+mermaid/4-state-diagram.mmd: 리플레이 상태 전이
+mermaid/5-component-tree.mmd: 컴포넌트 계층도
+mermaid/6-api-endpoints.mmd: API 엔드포인트 맵
+mermaid/7-data-flow.mmd: 데이터 흐름도
+mermaid/8-deployment.mmd: 배포 구조
+mermaid/9-physics-flowchart.mmd: 물리 엔진 계산 흐름
+mermaid/10-auth-flow.mmd: 사용자 인증 흐름
+
+
+[슬라이드 51]
+배포 전략
+
+프론트엔드: Vercel, npm run build, VITE_API_BASE_URL
+백엔드: Railway / Render, Railway PostgreSQL
+CI/CD: GitHub Actions, main 브랜치 push 시 자동 빌드 및 배포
+
+
+[슬라이드 52]
+향후 확장 계획 1
+
+Phase 1 (현재): 2025.09 ~ 2025.11
+시나리오: 야구 투구
+예상 개발 시간: 3개월
+
+Phase 2: 2025.12 ~ 2026.02
+시나리오: 포물선 운동, 자유 낙하
+예상 개발 시간: 각 30분 (설계 덕분!)
+
+
+[슬라이드 53]
+향후 확장 계획 2
+
+Phase 3: 2026.03 ~ 2026.05
+시나리오: 진자 운동, 충돌 시뮬레이션
+예상 개발 시간: 각 1일
+
+Phase 4: 2026.06 ~ 2026.08
+시나리오: 야구 타격 (Cannon.js 도입)
+예상 개발 시간: 1개월
+
+
+[슬라이드 54]
+핵심 성과
+
+확장 가능한 아키텍처 구축
+제네릭 타입 시스템: Base 타입 상속으로 80% 재사용
+Template Method 패턴: 공통 로직 100% 재사용
+Context Factory: 새 시나리오 Context 5줄로 생성
+메타데이터 기반 UI: 컴포넌트 재사용 90%
+
+
+[슬라이드 55]
+감사합니다
+
+교육용 3D 물리 시뮬레이터
+야구 투구 모듈
+
+프로젝트 설계 명세서
