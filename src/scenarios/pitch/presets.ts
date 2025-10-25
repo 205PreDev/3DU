@@ -1,93 +1,82 @@
-import { PitchParameters, PitchType, PHYSICS_CONSTANTS } from '@/types'
+import { PitchParameters, PitchType, PHYSICS_CONSTANTS, DEFAULT_ENVIRONMENT, DEFAULT_BALL } from '@/types'
 
 /**
- * 프리셋 투구 파라미터
+ * v2: 프리셋 투구 파라미터 (3단 구조)
  * 실제 프로 투수들의 데이터를 기반으로 구성
  */
 export const PITCH_PRESETS: Record<PitchType, PitchParameters> = {
   fastball: {
-    // 프로 직구 (약 145 km/h)
-    mass: PHYSICS_CONSTANTS.BASEBALL_MASS,
-    radius: PHYSICS_CONSTANTS.BASEBALL_RADIUS,
-    initialSpeed: 40.2,  // 40.2 m/s ≈ 145 km/h
-    releaseAngle: -3,    // 약간 하향
-    releaseHeight: 2.0,
-    releasePosition: { x: 0, y: 2.0, z: 0 },
-    spinRate: 2400,      // 백스핀
-    spinAxis: { x: 0, y: 1, z: 0 },  // 순수 백스핀 (위쪽)
-    airDensity: PHYSICS_CONSTANTS.AIR_DENSITY_SEA_LEVEL,
-    gravity: PHYSICS_CONSTANTS.GRAVITY,
-    dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT,
-    liftCoefficient: PHYSICS_CONSTANTS.LIFT_COEFFICIENT
+    ball: DEFAULT_BALL,
+    initial: {
+      velocity: 40.2,  // 40.2 m/s ≈ 145 km/h
+      angle: {
+        horizontal: 0,    // 정면
+        vertical: -3      // 약간 하향
+      },
+      spin: { x: 0, y: 2400, z: 0 },  // 순수 백스핀 (rpm)
+      releaseHeight: 2.0,
+      releasePosition: { x: 0, y: 2.0, z: 0 }
+    },
+    environment: DEFAULT_ENVIRONMENT
   },
 
   curveball: {
-    // 커브볼 (약 110 km/h, 큰 낙차)
-    mass: PHYSICS_CONSTANTS.BASEBALL_MASS,
-    radius: PHYSICS_CONSTANTS.BASEBALL_RADIUS,
-    initialSpeed: 30.5,  // 30.5 m/s ≈ 110 km/h
-    releaseAngle: 0,
-    releaseHeight: 2.0,
-    releasePosition: { x: 0, y: 2.0, z: 0 },
-    spinRate: 2800,      // 강한 회전
-    // 탑스핀(아래로 휘어짐) + 약간의 측면 회전
-    // 회전축: 위에서 봤을 때 시계방향 (우타자 기준 안쪽으로 약간)
-    spinAxis: { x: 0.38, y: -0.89, z: 0.25 },  // 정규화됨: length ≈ 1.0
-    airDensity: PHYSICS_CONSTANTS.AIR_DENSITY_SEA_LEVEL,
-    gravity: PHYSICS_CONSTANTS.GRAVITY,
-    dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT,
-    liftCoefficient: PHYSICS_CONSTANTS.LIFT_COEFFICIENT * 1.2  // 커브는 양력 계수가 더 큼
+    ball: {
+      ...DEFAULT_BALL,
+      liftCoefficient: PHYSICS_CONSTANTS.LIFT_COEFFICIENT * 1.2  // 커브는 양력 계수가 더 큼
+    },
+    initial: {
+      velocity: 30.5,  // 30.5 m/s ≈ 110 km/h
+      angle: { horizontal: 0, vertical: 0 },
+      spin: { x: 1064, y: -2492, z: 700 },  // 탑스핀 + 측면 (정규화 전 2800rpm)
+      releaseHeight: 2.0,
+      releasePosition: { x: 0, y: 2.0, z: 0 }
+    },
+    environment: DEFAULT_ENVIRONMENT
   },
 
   slider: {
-    // 슬라이더 (약 130 km/h, 횡적 변화)
-    mass: PHYSICS_CONSTANTS.BASEBALL_MASS,
-    radius: PHYSICS_CONSTANTS.BASEBALL_RADIUS,
-    initialSpeed: 36.1,  // 36.1 m/s ≈ 130 km/h
-    releaseAngle: -2,
-    releaseHeight: 2.0,
-    releasePosition: { x: 0, y: 2.0, z: 0 },
-    spinRate: 2600,
-    // 주로 횡 회전 (우타자 바깥쪽으로 휘어짐)
-    // 회전축: 거의 수평에 가까움
-    spinAxis: { x: 0.97, y: 0.24, z: 0 },  // 정규화됨: length ≈ 1.0
-    airDensity: PHYSICS_CONSTANTS.AIR_DENSITY_SEA_LEVEL,
-    gravity: PHYSICS_CONSTANTS.GRAVITY,
-    dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT,
-    liftCoefficient: PHYSICS_CONSTANTS.LIFT_COEFFICIENT
+    ball: DEFAULT_BALL,
+    initial: {
+      velocity: 36.1,  // 36.1 m/s ≈ 130 km/h
+      angle: { horizontal: 0, vertical: -2 },
+      spin: { x: 2522, y: 624, z: 0 },  // 주로 횡 회전 (정규화 전 2600rpm)
+      releaseHeight: 2.0,
+      releasePosition: { x: 0, y: 2.0, z: 0 }
+    },
+    environment: DEFAULT_ENVIRONMENT
   },
 
   changeup: {
-    // 체인지업 (약 125 km/h, 적은 회전)
-    mass: PHYSICS_CONSTANTS.BASEBALL_MASS,
-    radius: PHYSICS_CONSTANTS.BASEBALL_RADIUS,
-    initialSpeed: 34.7,  // 34.7 m/s ≈ 125 km/h
-    releaseAngle: -1,
-    releaseHeight: 2.0,
-    releasePosition: { x: 0, y: 2.0, z: 0 },
-    spinRate: 1500,      // 낮은 회전수
-    // 약한 백스핀 (직구보다 훨씬 적은 회전)
-    spinAxis: { x: 0, y: 0.99, z: 0.11 },  // 정규화됨: length ≈ 1.0
-    airDensity: PHYSICS_CONSTANTS.AIR_DENSITY_SEA_LEVEL,
-    gravity: PHYSICS_CONSTANTS.GRAVITY,
-    dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT * 1.1,  // 항력이 더 큼
-    liftCoefficient: PHYSICS_CONSTANTS.LIFT_COEFFICIENT * 0.8
+    ball: {
+      ...DEFAULT_BALL,
+      dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT * 1.1,
+      liftCoefficient: PHYSICS_CONSTANTS.LIFT_COEFFICIENT * 0.8
+    },
+    initial: {
+      velocity: 34.7,  // 34.7 m/s ≈ 125 km/h
+      angle: { horizontal: 0, vertical: -1 },
+      spin: { x: 0, y: 1485, z: 165 },  // 약한 백스핀 (정규화 전 1500rpm)
+      releaseHeight: 2.0,
+      releasePosition: { x: 0, y: 2.0, z: 0 }
+    },
+    environment: DEFAULT_ENVIRONMENT
   },
 
   knuckleball: {
-    // 너클볼 (약 100 km/h, 거의 무회전)
-    mass: PHYSICS_CONSTANTS.BASEBALL_MASS,
-    radius: PHYSICS_CONSTANTS.BASEBALL_RADIUS,
-    initialSpeed: 27.8,  // 27.8 m/s ≈ 100 km/h
-    releaseAngle: 0,
-    releaseHeight: 2.0,
-    releasePosition: { x: 0, y: 2.0, z: 0 },
-    spinRate: 50,        // 거의 회전 없음
-    spinAxis: { x: 0, y: 1, z: 0 },
-    airDensity: PHYSICS_CONSTANTS.AIR_DENSITY_SEA_LEVEL,
-    gravity: PHYSICS_CONSTANTS.GRAVITY,
-    dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT * 1.3,  // 높은 항력
-    liftCoefficient: 0.05  // 마그누스 효과 거의 없음
+    ball: {
+      ...DEFAULT_BALL,
+      dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT * 1.3,
+      liftCoefficient: 0.05
+    },
+    initial: {
+      velocity: 27.8,  // 27.8 m/s ≈ 100 km/h
+      angle: { horizontal: 0, vertical: 0 },
+      spin: { x: 0, y: 50, z: 0 },  // 거의 회전 없음
+      releaseHeight: 2.0,
+      releasePosition: { x: 0, y: 2.0, z: 0 }
+    },
+    environment: DEFAULT_ENVIRONMENT
   }
 }
 

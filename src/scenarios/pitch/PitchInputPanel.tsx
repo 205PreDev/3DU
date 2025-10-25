@@ -5,149 +5,53 @@ import { PitchType } from '@/types'
 import { PITCH_NAMES, PITCH_DESCRIPTIONS } from './presets'
 
 /**
- * 투구 파라미터 입력 패널
+ * 투구 파라미터 입력 패널 (v2: 단일 모드)
  */
 export function PitchInputPanel() {
-  const { uiMode, setUIMode, setPreset, setSimpleModeInputs, runSimulation, isSimulating } = useSimulation()
-
-  // 단순 모드 상태
-  const [throwPower, setThrowPower] = useState(5)
+  const { setPreset, runSimulation, isSimulating } = useSimulation()
   const [pitchType, setPitchType] = useState<PitchType>('fastball')
 
-  const handleSimulate = () => {
-    if (uiMode === 'simple') {
-      setSimpleModeInputs({
-        throwPower,
-        pitchType,
-        targetZone: 'center'
-      })
-    }
-    runSimulation()
-  }
-
-  return (
-    <Panel>
-      <Header>
-        <Title>투구 설정</Title>
-        <ModeToggle>
-          <ModeButton
-            active={uiMode === 'simple'}
-            onClick={() => setUIMode('simple')}
-          >
-            단순 모드
-          </ModeButton>
-          <ModeButton
-            active={uiMode === 'advanced'}
-            onClick={() => setUIMode('advanced')}
-          >
-            전문가 모드
-          </ModeButton>
-        </ModeToggle>
-      </Header>
-
-      {uiMode === 'simple' ? (
-        <SimpleModeInputs
-          throwPower={throwPower}
-          setThrowPower={setThrowPower}
-          pitchType={pitchType}
-          setPitchType={setPitchType}
-        />
-      ) : (
-        <AdvancedModeInputs
-          pitchType={pitchType}
-          setPitchType={setPitchType}
-          setPreset={setPreset}
-        />
-      )}
-
-      <SimulateButton onClick={handleSimulate} disabled={isSimulating}>
-        {isSimulating ? '시뮬레이션 중...' : '⚾ 시뮬레이션 시작'}
-      </SimulateButton>
-    </Panel>
-  )
-}
-
-function SimpleModeInputs({
-  throwPower,
-  setThrowPower,
-  pitchType,
-  setPitchType
-}: {
-  throwPower: number
-  setThrowPower: (v: number) => void
-  pitchType: PitchType
-  setPitchType: (v: PitchType) => void
-}) {
-  return (
-    <InputSection>
-      <InputGroup>
-        <InputLabel>던지는 세기</InputLabel>
-        <SliderContainer>
-          <Slider
-            type="range"
-            min="1"
-            max="10"
-            step="1"
-            value={throwPower}
-            onChange={(e) => setThrowPower(Number(e.target.value))}
-          />
-          <SliderValue>{throwPower} / 10</SliderValue>
-        </SliderContainer>
-      </InputGroup>
-
-      <InputGroup>
-        <InputLabel>구종 선택</InputLabel>
-        <Select value={pitchType} onChange={(e) => setPitchType(e.target.value as PitchType)}>
-          {(Object.keys(PITCH_NAMES) as PitchType[]).map(type => (
-            <option key={type} value={type}>
-              {PITCH_NAMES[type]}
-            </option>
-          ))}
-        </Select>
-        <Description>{PITCH_DESCRIPTIONS[pitchType]}</Description>
-      </InputGroup>
-    </InputSection>
-  )
-}
-
-function AdvancedModeInputs({
-  pitchType,
-  setPitchType,
-  setPreset
-}: {
-  pitchType: PitchType
-  setPitchType: (v: PitchType) => void
-  setPreset: (v: PitchType) => void
-}) {
   const handlePresetChange = (type: PitchType) => {
     setPitchType(type)
     setPreset(type)
   }
 
   return (
-    <InputSection>
-      <InputGroup>
-        <InputLabel>프리셋 선택</InputLabel>
-        <PresetGrid>
-          {(Object.keys(PITCH_NAMES) as PitchType[]).map(type => (
-            <PresetButton
-              key={type}
-              active={pitchType === type}
-              onClick={() => handlePresetChange(type)}
-            >
-              {PITCH_NAMES[type]}
-            </PresetButton>
-          ))}
-        </PresetGrid>
-        <Description>{PITCH_DESCRIPTIONS[pitchType]}</Description>
-      </InputGroup>
+    <Panel>
+      <Header>
+        <Title>투구 설정</Title>
+      </Header>
 
-      <InfoText>
-        전문가 모드에서는 프리셋을 선택하면 해당 구종의 파라미터가 자동으로 설정됩니다.
-      </InfoText>
-    </InputSection>
+      <InputSection>
+        <InputGroup>
+          <InputLabel>구종 선택</InputLabel>
+          <PresetGrid>
+            {(Object.keys(PITCH_NAMES) as PitchType[]).map(type => (
+              <PresetButton
+                key={type}
+                active={pitchType === type}
+                onClick={() => handlePresetChange(type)}
+              >
+                {PITCH_NAMES[type]}
+              </PresetButton>
+            ))}
+          </PresetGrid>
+          <Description>{PITCH_DESCRIPTIONS[pitchType]}</Description>
+        </InputGroup>
+
+        <InfoText>
+          구종을 선택하면 해당 구종의 물리 파라미터(속도, 회전, 각도)가 자동으로 설정됩니다.
+        </InfoText>
+      </InputSection>
+
+      <SimulateButton onClick={runSimulation} disabled={isSimulating}>
+        {isSimulating ? '시뮬레이션 중...' : '⚾ 시뮬레이션 시작'}
+      </SimulateButton>
+    </Panel>
   )
 }
+
+// v2: SimpleModeInputs, AdvancedModeInputs 제거 (단일 모드 통합)
 
 const Panel = styled.div`
   background: #2a2a3e;
@@ -170,25 +74,7 @@ const Title = styled.h3`
   font-weight: 600;
 `
 
-const ModeToggle = styled.div`
-  display: flex;
-  gap: 8px;
-`
-
-const ModeButton = styled.button<{ active: boolean }>`
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  background: ${props => props.active ? '#4caf50' : '#1a1a2e'};
-  color: #ffffff;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: ${props => props.active ? '#45a049' : '#252538'};
-  }
-`
+// v2: ModeToggle, ModeButton 제거 (단일 모드)
 
 const InputSection = styled.div`
   display: flex;
@@ -209,60 +95,7 @@ const InputLabel = styled.label`
   color: #ccc;
 `
 
-const SliderContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`
-
-const Slider = styled.input`
-  flex: 1;
-  height: 6px;
-  border-radius: 3px;
-  background: #1a1a2e;
-  outline: none;
-
-  &::-webkit-slider-thumb {
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #4caf50;
-    cursor: pointer;
-  }
-
-  &::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #4caf50;
-    cursor: pointer;
-    border: none;
-  }
-`
-
-const SliderValue = styled.span`
-  min-width: 50px;
-  text-align: right;
-  font-size: 14px;
-  font-weight: 600;
-  color: #4caf50;
-`
-
-const Select = styled.select`
-  padding: 10px;
-  border: 1px solid #444;
-  border-radius: 4px;
-  background: #1a1a2e;
-  color: #ffffff;
-  font-size: 14px;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    border-color: #4caf50;
-  }
-`
+// v2: Slider, SliderContainer, SliderValue, Select 제거 (단순 모드 UI 제거)
 
 const Description = styled.p`
   margin: 0;

@@ -25,18 +25,16 @@ export class PitchSimulator {
   }
 
   /**
-   * 미분 함수: 위치와 속도의 변화율 계산
+   * v2: 미분 함수: 위치와 속도의 변화율 계산
    */
   private derivative: DerivativeFunction = (
-    position: Vector3,
+    _position: Vector3,
     velocity: Vector3,
     _time: number
   ) => {
-    // 현재 상태에서의 힘 계산
-    // spinAxis는 정규화된 방향 벡터를 전달
-    const normalizedSpinAxis = vec3.normalize(this.params.spinAxis)
-    const force = calculateTotalForce(velocity, normalizedSpinAxis, this.params)
-    const acceleration = calculateAcceleration(force, this.params.mass)
+    // v2: spin은 이미 Vector3 형태
+    const force = calculateTotalForce(velocity, this.params.initial.spin, this.params)
+    const acceleration = calculateAcceleration(force, this.params.ball.mass)
 
     return {
       velocityDerivative: velocity,  // dx/dt = v
@@ -45,21 +43,23 @@ export class PitchSimulator {
   }
 
   /**
-   * 시뮬레이션 실행
+   * v2: 시뮬레이션 실행
    */
   simulate(): SimulationResult {
-    // 초기 상태 설정
-    const initialAngleRad = (this.params.releaseAngle * Math.PI) / 180
+    // v2: 초기 상태 설정
+    const horizontalAngleRad = (this.params.initial.angle.horizontal * Math.PI) / 180
+    const verticalAngleRad = (this.params.initial.angle.vertical * Math.PI) / 180
+
     const initialVelocity: Vector3 = {
-      x: 0,  // 수평 방향 (좌우)
-      y: this.params.initialSpeed * Math.sin(initialAngleRad),
-      z: -this.params.initialSpeed * Math.cos(initialAngleRad)  // 앞으로 (음수)
+      x: this.params.initial.velocity * Math.sin(horizontalAngleRad) * Math.cos(verticalAngleRad),
+      y: this.params.initial.velocity * Math.sin(verticalAngleRad),
+      z: -this.params.initial.velocity * Math.cos(horizontalAngleRad) * Math.cos(verticalAngleRad)
     }
 
     let state: SimulationState = {
-      position: vec3.clone(this.params.releasePosition),
+      position: vec3.clone(this.params.initial.releasePosition),
       velocity: initialVelocity,
-      spin: vec3.normalize(this.params.spinAxis),  // 정규화된 회전축 방향만 저장
+      spin: vec3.clone(this.params.initial.spin),  // v2: spin Vector3 그대로 저장
       time: 0
     }
 
@@ -101,9 +101,9 @@ export class PitchSimulator {
       }
     }
 
-    // 결과 계산
-    const horizontalBreak = plateX - this.params.releasePosition.x
-    const verticalDrop = this.params.releasePosition.y - plateHeight
+    // v2: 결과 계산
+    const horizontalBreak = plateX - this.params.initial.releasePosition.x
+    const verticalDrop = this.params.initial.releasePosition.y - plateHeight
     const isStrike = this.checkStrike(plateX, plateHeight)  // 플레이트 통과 시의 위치로 판정
 
     return {

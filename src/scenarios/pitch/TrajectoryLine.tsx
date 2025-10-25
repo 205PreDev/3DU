@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { BufferGeometry, Vector3 as ThreeVector3 } from 'three'
+import { Vector3 as ThreeVector3 } from 'three'
 import { Line } from '@react-three/drei'
 import { Vector3 } from '@/types'
 

@@ -1,4 +1,4 @@
-import { Vector3, PitchParameters, EnvironmentConditions } from '@/types'
+import { Vector3, PitchParameters } from '@/types'
 import { vec3 } from './integrator'
 
 /**
@@ -29,9 +29,6 @@ export function calculateAirDensity(
 
   // 실제 수증기압 (Pa)
   const e = (humidity / 100) * e_s
-
-  // 건조 공기 분압 (Pa)
-  const p_d = p - e
 
   // 공기 밀도 계산 (습도 고려)
   // ρ = p_d / (R_d * T) + e / (R_v * T)
