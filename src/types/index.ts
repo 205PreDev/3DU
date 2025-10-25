@@ -5,29 +5,40 @@ export interface Vector3 {
   z: number
 }
 
-// 투구 파라미터
-export interface PitchParameters {
-  // 공 속성
-  mass: number              // kg (야구공: 0.145)
-  radius: number            // m (야구공: 0.0366)
+// v2: 공 물성 파라미터
+export interface BallProperties {
+  mass: number              // kg
+  radius: number            // m
+  dragCoefficient: number   // C_d
+  liftCoefficient: number   // C_L
+}
 
-  // 초기 조건
-  initialSpeed: number      // m/s
-  releaseAngle: number      // degrees
+// v2: 초기 투구 조건
+export interface InitialConditions {
+  velocity: number          // m/s
+  angle: {
+    horizontal: number      // degrees (수평각)
+    vertical: number        // degrees (수직각)
+  }
+  spin: Vector3             // rpm (x, y, z 회전)
   releaseHeight: number     // m
   releasePosition: Vector3  // m
+}
 
-  // 회전
-  spinRate: number          // rpm
-  spinAxis: Vector3         // 정규화된 벡터
+// v2: 환경 변수
+export interface EnvironmentConditions {
+  gravity: number           // m/s² (9.78~9.83)
+  temperature: number       // °C
+  pressure: number          // hPa
+  humidity: number          // %
+  windSpeed: Vector3        // m/s
+}
 
-  // 환경
-  airDensity: number        // kg/m³
-  gravity: number           // m/s² (기본: 9.81)
-
-  // 계수
-  dragCoefficient: number   // 항력 계수 (기본: 0.4)
-  liftCoefficient: number   // 양력 계수 (기본: 0.2)
+// v2: 투구 파라미터 (3단 구조)
+export interface PitchParameters {
+  ball: BallProperties
+  initial: InitialConditions
+  environment: EnvironmentConditions
 }
 
 // 시뮬레이션 상태
@@ -59,24 +70,34 @@ export type PitchType =
   | 'changeup'    // 체인지업
   | 'knuckleball' // 너클볼
 
-// UI 모드
-export type UIMode = 'simple' | 'advanced'
+// v2: UI 모드 제거 (단일 모드로 통합)
+// export type UIMode = 'simple' | 'advanced' // REMOVED
 
-// 단순 모드 입력
-export interface SimpleModeInputs {
-  throwPower: number      // 던지는 세기 (1-10)
-  pitchType: PitchType    // 구종 선택
-  targetZone: string      // 목표 위치
+// v2: 물리 상수 (GRAVITY 제거, 환경 변수로 이동)
+export const PHYSICS_CONSTANTS = {
+  AIR_DENSITY_SEA_LEVEL: 1.225,     // kg/m³ (참조값, 환경 조건으로 계산)
+  BASEBALL_MASS: 0.145,             // kg (기본값)
+  BASEBALL_RADIUS: 0.0366,          // m (기본값)
+  BASEBALL_AREA: Math.PI * 0.0366 * 0.0366, // m²
+  DRAG_COEFFICIENT: 0.4,            // 기본값
+  LIFT_COEFFICIENT: 0.2,            // 기본값
+  MOUND_TO_PLATE: 18.44,            // m (60.5 feet)
+  // GRAVITY 제거: environment.gravity 사용
+} as const
+
+// v2: 기본 환경 조건
+export const DEFAULT_ENVIRONMENT: EnvironmentConditions = {
+  gravity: 9.81,          // m/s² (표준 중력)
+  temperature: 20,        // °C (표준 온도)
+  pressure: 1013.25,      // hPa (해수면 기압)
+  humidity: 50,           // %
+  windSpeed: { x: 0, y: 0, z: 0 }
 }
 
-// 물리 상수
-export const PHYSICS_CONSTANTS = {
-  GRAVITY: 9.81,                    // m/s²
-  AIR_DENSITY_SEA_LEVEL: 1.225,     // kg/m³
-  BASEBALL_MASS: 0.145,             // kg
-  BASEBALL_RADIUS: 0.0366,          // m
-  BASEBALL_AREA: Math.PI * 0.0366 * 0.0366, // m²
-  DRAG_COEFFICIENT: 0.4,
-  LIFT_COEFFICIENT: 0.2,
-  MOUND_TO_PLATE: 18.44,            // m (60.5 feet)
-} as const
+// v2: 기본 공 물성
+export const DEFAULT_BALL: BallProperties = {
+  mass: PHYSICS_CONSTANTS.BASEBALL_MASS,
+  radius: PHYSICS_CONSTANTS.BASEBALL_RADIUS,
+  dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT,
+  liftCoefficient: PHYSICS_CONSTANTS.LIFT_COEFFICIENT
+}
