@@ -8,17 +8,36 @@ import {
 import { runSimulation } from '@/core/physics/simulator'
 
 // v3: 프리셋 제거 (직접 입력 전용)
+// v4: 리플레이 및 카메라 상태 추가
 interface SimulationContextType {
   // 상태
   params: PitchParameters
   result: SimulationResult | null
   isSimulating: boolean
 
+  // 리플레이 상태
+  isReplaying: boolean
+  replayTime: number            // 현재 재생 시간 (초)
+  playbackSpeed: number         // 재생 속도 (0.25 ~ 2.0)
+
+  // 카메라 상태
+  cameraPreset: CameraPreset
+
   // 액션
   setParams: (params: Partial<PitchParameters>) => void
   runSimulation: () => void
   reset: () => void
+
+  // 리플레이 액션
+  setIsReplaying: (playing: boolean) => void
+  setReplayTime: (time: number) => void
+  setPlaybackSpeed: (speed: number) => void
+
+  // 카메라 액션
+  setCameraPreset: (preset: CameraPreset) => void
 }
+
+export type CameraPreset = 'catcher' | 'pitcher' | 'side' | 'follow' | 'free'
 
 const SimulationContext = createContext<SimulationContextType | undefined>(undefined)
 
@@ -29,8 +48,7 @@ const DEFAULT_PARAMS: PitchParameters = {
     velocity: 35,  // m/s
     angle: { horizontal: 0, vertical: -2 },
     spin: { x: 0, y: 2000, z: 0 },  // 백스핀 2000rpm
-    releaseHeight: 2.0,
-    releasePosition: { x: 0, y: 2.0, z: 0 }
+    releasePoint: { x: 0, y: 2.0, z: 0 }  // 중앙, 높이 2m, 투구판 위치
   },
   environment: DEFAULT_ENVIRONMENT
 }
@@ -39,6 +57,12 @@ export function SimulationProvider({ children }: { children: ReactNode }): JSX.E
   const [params, setParamsState] = useState<PitchParameters>(DEFAULT_PARAMS)
   const [result, setResult] = useState<SimulationResult | null>(null)
   const [isSimulating, setIsSimulating] = useState(false)
+
+  // v4: 리플레이 및 카메라 상태
+  const [isReplaying, setIsReplaying] = useState(false)
+  const [replayTime, setReplayTime] = useState(0)
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0)
+  const [cameraPreset, setCameraPreset] = useState<CameraPreset>('free')
 
   // v2: 깊은 병합을 위한 setParams
   const setParams = (newParams: Partial<PitchParameters>): void => {
@@ -68,16 +92,26 @@ export function SimulationProvider({ children }: { children: ReactNode }): JSX.E
   const reset = (): void => {
     setParamsState(DEFAULT_PARAMS)
     setResult(null)
+    setIsReplaying(false)
+    setReplayTime(0)
   }
 
-  // v3: setPreset 제거
+  // v4: 리플레이 및 카메라 액션 추가
   const value: SimulationContextType = {
     params,
     result,
     isSimulating,
+    isReplaying,
+    replayTime,
+    playbackSpeed,
+    cameraPreset,
     setParams,
     runSimulation: runSim,
-    reset
+    reset,
+    setIsReplaying,
+    setReplayTime,
+    setPlaybackSpeed,
+    setCameraPreset
   }
 
   return (

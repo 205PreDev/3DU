@@ -29,9 +29,17 @@ const PARAM_TOOLTIPS: Record<string, { description: string; effect: string }> = 
     description: 'Z축 회전 (전후 축)',
     effect: '↑ 수평 회전 변화'
   },
-  releaseHeight: {
-    description: '공을 놓는 높이',
+  releaseX: {
+    description: '릴리스 포인트 X축 (좌우)',
+    effect: '↑ 양수: 1루 쪽, 음수: 3루 쪽 (우완/좌완 구분)'
+  },
+  releaseY: {
+    description: '릴리스 포인트 Y축 (높이)',
     effect: '↑ 높을수록 위에서 떨어지는 효과'
+  },
+  releaseZ: {
+    description: '릴리스 포인트 Z축 (앞뒤)',
+    effect: '↑ 양수: 타자 쪽, 음수: 마운드 뒤쪽'
   },
   gravity: {
     description: '중력 가속도',
@@ -67,13 +75,33 @@ const PARAM_TOOLTIPS: Record<string, { description: string; effect: string }> = 
   }
 }
 
-// 구종별 예시 데이터
-const PITCH_EXAMPLES = {
-  fastball: { velocity: 40, horizontal: 0, vertical: -2, spinX: 0, spinY: 2400, spinZ: 0 },
-  curveball: { velocity: 30, horizontal: 0, vertical: -5, spinX: 0, spinY: -2800, spinZ: 0 },
-  slider: { velocity: 35, horizontal: -2, vertical: -3, spinX: 500, spinY: 1500, spinZ: 0 },
-  changeup: { velocity: 32, horizontal: 0, vertical: -2, spinX: 0, spinY: 1200, spinZ: 0 },
-  knuckleball: { velocity: 28, horizontal: 0, vertical: -1, spinX: 10, spinY: 10, spinZ: 10 }
+// 투구 폼별 예시 데이터 (릴리스 포인트 포함)
+const PITCH_FORM_EXAMPLES = {
+  overhandRight: {
+    name: '오버핸드 우완',
+    releaseX: 0.4, releaseY: 2.0, releaseZ: 0.0,
+    velocity: 40, horizontal: 0, vertical: -2, spinX: 0, spinY: 2400, spinZ: 0
+  },
+  sidearmRight: {
+    name: '사이드암 우완',
+    releaseX: 0.5, releaseY: 1.5, releaseZ: 0.0,
+    velocity: 38, horizontal: -1, vertical: -1, spinX: 800, spinY: 1800, spinZ: 0
+  },
+  underhandRight: {
+    name: '언더핸드 우완',
+    releaseX: 0.3, releaseY: 1.2, releaseZ: 0.0,
+    velocity: 35, horizontal: 0, vertical: 1, spinX: 0, spinY: 2200, spinZ: 0
+  },
+  overhandLeft: {
+    name: '오버핸드 좌완',
+    releaseX: -0.4, releaseY: 2.0, releaseZ: 0.0,
+    velocity: 40, horizontal: 0, vertical: -2, spinX: 0, spinY: 2400, spinZ: 0
+  },
+  sliderLeft: {
+    name: '좌완 슬라이더',
+    releaseX: -0.4, releaseY: 1.9, releaseZ: 0.2,
+    velocity: 35, horizontal: 2, vertical: -3, spinX: -500, spinY: 1500, spinZ: 0
+  }
 }
 
 /**
@@ -117,6 +145,31 @@ export function PitchInputPanel() {
     })
   }
 
+  const handleReleasePointChange = (axis: 'x' | 'y' | 'z', value: number) => {
+    setParams({
+      initial: {
+        ...params.initial,
+        releasePoint: {
+          ...params.initial.releasePoint,
+          [axis]: value
+        }
+      }
+    })
+  }
+
+  const applyFormExample = (formKey: keyof typeof PITCH_FORM_EXAMPLES) => {
+    const example = PITCH_FORM_EXAMPLES[formKey]
+    setParams({
+      initial: {
+        ...params.initial,
+        velocity: example.velocity,
+        angle: { horizontal: example.horizontal, vertical: example.vertical },
+        spin: { x: example.spinX, y: example.spinY, z: example.spinZ },
+        releasePoint: { x: example.releaseX, y: example.releaseY, z: example.releaseZ }
+      }
+    })
+  }
+
   return (
     <Panel>
       <Header>
@@ -134,13 +187,21 @@ export function PitchInputPanel() {
 
         {showExamples && (
           <ExamplePanel>
-            <ExampleTitle>구종별 입력 예시 (참고용)</ExampleTitle>
-            {Object.entries(PITCH_EXAMPLES).map(([key, values]) => (
-              <ExampleRow key={key}>
-                <ExampleLabel>{key === 'fastball' ? '직구' : key === 'curveball' ? '커브' : key === 'slider' ? '슬라이더' : key === 'changeup' ? '체인지업' : '너클볼'}</ExampleLabel>
-                <ExampleValues>속도:{values.velocity} 각도:({values.horizontal},{values.vertical}) 회전:({values.spinX},{values.spinY},{values.spinZ})</ExampleValues>
+            <ExampleTitle>투구 폼별 예시 (클릭하여 적용)</ExampleTitle>
+            {Object.entries(PITCH_FORM_EXAMPLES).map(([key, form]) => (
+              <ExampleRow
+                key={key}
+                onClick={() => applyFormExample(key as keyof typeof PITCH_FORM_EXAMPLES)}
+                style={{ cursor: 'pointer' }}
+              >
+                <ExampleLabel>{form.name}</ExampleLabel>
+                <ExampleValues>
+                  릴리스:({form.releaseX},{form.releaseY},{form.releaseZ})
+                  속도:{form.velocity} 각도:({form.horizontal},{form.vertical})
+                </ExampleValues>
               </ExampleRow>
             ))}
+            <ExampleNote>💡 우완/좌완 릴리스 포인트 차이로 마그누스 효과가 극적으로 변합니다</ExampleNote>
           </ExamplePanel>
         )}
 
@@ -229,17 +290,46 @@ export function PitchInputPanel() {
 
         <InputGroup>
           <LabelWithTooltip
-            label="릴리즈 높이 (m)"
-            tooltipKey="releaseHeight"
+            label="릴리스 포인트 (m)"
+            tooltipKey="releaseY"
             activeTooltip={activeTooltip}
             setActiveTooltip={setActiveTooltip}
           />
-          <Input
-            type="number"
-            value={params.initial.releaseHeight}
-            onChange={(e) => handleInputChange('initial', 'releaseHeight', Number(e.target.value))}
-            step="0.1"
-          />
+          <SpinInputs>
+            <div>
+              <AxisLabel>X축 (좌우)</AxisLabel>
+              <SmallInput
+                type="number"
+                value={params.initial.releasePoint.x}
+                onChange={(e) => handleReleasePointChange('x', Number(e.target.value))}
+                step="0.1"
+                min="-1"
+                max="1"
+              />
+            </div>
+            <div>
+              <AxisLabel>Y축 (높이)</AxisLabel>
+              <SmallInput
+                type="number"
+                value={params.initial.releasePoint.y}
+                onChange={(e) => handleReleasePointChange('y', Number(e.target.value))}
+                step="0.1"
+                min="1"
+                max="2.5"
+              />
+            </div>
+            <div>
+              <AxisLabel>Z축 (앞뒤)</AxisLabel>
+              <SmallInput
+                type="number"
+                value={params.initial.releasePoint.z}
+                onChange={(e) => handleReleasePointChange('z', Number(e.target.value))}
+                step="0.1"
+                min="-0.5"
+                max="0.5"
+              />
+            </div>
+          </SpinInputs>
         </InputGroup>
 
         {/* 공 물성 */}
@@ -492,8 +582,14 @@ const ExampleTitle = styled.div`
 const ExampleRow = styled.div`
   display: flex;
   justify-content: space-between;
-  padding: 6px 0;
+  padding: 8px;
   border-bottom: 1px solid #333;
+  border-radius: 4px;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #252540;
+  }
 
   &:last-child {
     border-bottom: none;
@@ -510,6 +606,16 @@ const ExampleValues = styled.span`
   font-size: 11px;
   color: #4caf50;
   font-family: monospace;
+`
+
+const ExampleNote = styled.div`
+  margin-top: 12px;
+  padding: 8px;
+  background: #1a1a2e;
+  border-left: 3px solid #4caf50;
+  font-size: 11px;
+  color: #ccc;
+  line-height: 1.4;
 `
 
 const Input = styled.input`

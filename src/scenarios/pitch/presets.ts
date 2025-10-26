@@ -14,8 +14,7 @@ export const PITCH_PRESETS: Record<PitchType, PitchParameters> = {
         vertical: -3      // 약간 하향
       },
       spin: { x: 0, y: 2400, z: 0 },  // 순수 백스핀 (rpm)
-      releaseHeight: 2.0,
-      releasePosition: { x: 0, y: 2.0, z: 0 }
+      releasePoint: { x: 0, y: 2.0, z: 0 }
     },
     environment: DEFAULT_ENVIRONMENT
   },
@@ -29,8 +28,7 @@ export const PITCH_PRESETS: Record<PitchType, PitchParameters> = {
       velocity: 30.5,  // 30.5 m/s ≈ 110 km/h
       angle: { horizontal: 0, vertical: 0 },
       spin: { x: 1064, y: -2492, z: 700 },  // 탑스핀 + 측면 (정규화 전 2800rpm)
-      releaseHeight: 2.0,
-      releasePosition: { x: 0, y: 2.0, z: 0 }
+      releasePoint: { x: 0, y: 2.0, z: 0 }
     },
     environment: DEFAULT_ENVIRONMENT
   },
@@ -41,8 +39,7 @@ export const PITCH_PRESETS: Record<PitchType, PitchParameters> = {
       velocity: 36.1,  // 36.1 m/s ≈ 130 km/h
       angle: { horizontal: 0, vertical: -2 },
       spin: { x: 2522, y: 624, z: 0 },  // 주로 횡 회전 (정규화 전 2600rpm)
-      releaseHeight: 2.0,
-      releasePosition: { x: 0, y: 2.0, z: 0 }
+      releasePoint: { x: 0, y: 2.0, z: 0 }
     },
     environment: DEFAULT_ENVIRONMENT
   },
@@ -57,8 +54,7 @@ export const PITCH_PRESETS: Record<PitchType, PitchParameters> = {
       velocity: 34.7,  // 34.7 m/s ≈ 125 km/h
       angle: { horizontal: 0, vertical: -1 },
       spin: { x: 0, y: 1485, z: 165 },  // 약한 백스핀 (정규화 전 1500rpm)
-      releaseHeight: 2.0,
-      releasePosition: { x: 0, y: 2.0, z: 0 }
+      releasePoint: { x: 0, y: 2.0, z: 0 }
     },
     environment: DEFAULT_ENVIRONMENT
   },
@@ -73,8 +69,7 @@ export const PITCH_PRESETS: Record<PitchType, PitchParameters> = {
       velocity: 27.8,  // 27.8 m/s ≈ 100 km/h
       angle: { horizontal: 0, vertical: 0 },
       spin: { x: 0, y: 50, z: 0 },  // 거의 회전 없음
-      releaseHeight: 2.0,
-      releasePosition: { x: 0, y: 2.0, z: 0 }
+      releasePoint: { x: 0, y: 2.0, z: 0 }
     },
     environment: DEFAULT_ENVIRONMENT
   }

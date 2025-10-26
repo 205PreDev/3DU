@@ -57,7 +57,7 @@ export class PitchSimulator {
     }
 
     let state: SimulationState = {
-      position: vec3.clone(this.params.initial.releasePosition),
+      position: vec3.clone(this.params.initial.releasePoint),
       velocity: initialVelocity,
       spin: vec3.clone(this.params.initial.spin),  // v2: spin Vector3 그대로 저장
       time: 0
@@ -102,8 +102,8 @@ export class PitchSimulator {
     }
 
     // v2: 결과 계산
-    const horizontalBreak = plateX - this.params.initial.releasePosition.x
-    const verticalDrop = this.params.initial.releasePosition.y - plateHeight
+    const horizontalBreak = plateX - this.params.initial.releasePoint.x
+    const verticalDrop = this.params.initial.releasePoint.y - plateHeight
     const isStrike = this.checkStrike(plateX, plateHeight)  // 플레이트 통과 시의 위치로 판정
 
     return {

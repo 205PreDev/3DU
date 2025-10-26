@@ -21,8 +21,7 @@ export interface InitialConditions {
     vertical: number        // degrees (수직각)
   }
   spin: Vector3             // rpm (x, y, z 회전)
-  releaseHeight: number     // m
-  releasePosition: Vector3  // m
+  releasePoint: Vector3     // m (릴리스 포인트: X=좌우, Y=높이, Z=앞뒤)
 }
 
 // v2: 환경 변수

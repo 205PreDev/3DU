@@ -20,15 +20,18 @@ export function Scene3D({ children }: Scene3DProps) {
         far: 50
       }}
       style={{ background: '#1a1a2e' }}
+      dpr={[1, 1]}  // 픽셀 밀도 1배 고정 (성능 최우선)
+      performance={{ min: 0.5 }}  // 성능 우선 모드
+      gl={{
+        antialias: false,
+        alpha: false,
+        powerPreference: 'high-performance',
+        stencil: false,
+        depth: true
+      }}
     >
-      {/* 환경 조명 */}
-      <ambientLight intensity={0.5} />
-
-      {/* 주 조명 (그림자 제거로 성능 향상) */}
-      <directionalLight
-        position={[10, 10, 5]}
-        intensity={1.2}
-      />
+      {/* BasicMaterial 사용으로 조명 최소화 */}
+      <ambientLight intensity={0.8} />
 
       {/* 카메라 컨트롤 */}
       <OrbitControls
