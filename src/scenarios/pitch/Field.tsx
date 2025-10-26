@@ -8,10 +8,10 @@ export function Field() {
 
   return (
     <group>
-      {/* 바닥 평면 */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[30, 30]} />
-        <meshStandardMaterial color="#2d5016" roughness={0.8} />
+      {/* 바닥 평면 (성능 최적화: 그림자 제거) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+        <planeGeometry args={[20, 20]} />
+        <meshBasicMaterial color="#2d5016" />
       </mesh>
 
       {/* 투수판 (마운드) */}

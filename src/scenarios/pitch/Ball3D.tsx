@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, memo } from 'react'
 import { Mesh } from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Vector3 } from '@/types'
@@ -10,9 +10,9 @@ interface Ball3DProps {
 }
 
 /**
- * 야구공 3D 모델
+ * 야구공 3D 모델 (성능 최적화: memo, 폴리곤 감소)
  */
-export function Ball3D({
+export const Ball3D = memo(function Ball3D({
   position = { x: 0, y: 0, z: 0 },
   radius = 0.0366,  // 야구공 반지름 (m)
   color = '#ffffff'
@@ -26,13 +26,9 @@ export function Ball3D({
   })
 
   return (
-    <mesh ref={meshRef} castShadow receiveShadow>
-      <sphereGeometry args={[radius, 32, 32]} />
-      <meshStandardMaterial
-        color={color}
-        roughness={0.7}
-        metalness={0.1}
-      />
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[radius, 12, 12]} />
+      <meshBasicMaterial color={color} />
     </mesh>
   )
-}
+})

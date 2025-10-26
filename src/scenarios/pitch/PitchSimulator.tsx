@@ -17,12 +17,14 @@ export function PitchSimulator() {
   const { result } = useSimulation()
   const [animationIndex, setAnimationIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [showJudgment, setShowJudgment] = useState(false)
 
   // 시뮬레이션 결과가 나오면 애니메이션 시작
   useEffect(() => {
     if (result && result.trajectory.length > 0) {
       setAnimationIndex(0)
       setIsAnimating(true)
+      setShowJudgment(false)
     }
   }, [result])
 
@@ -38,10 +40,19 @@ export function PitchSimulator() {
         }
         return prev + 1
       })
-    }, 20)  // 20ms = 50fps
+    }, 33)  // 33ms = 30fps (성능 최적화)
 
     return () => clearInterval(interval)
   }, [isAnimating, result])
+
+  // 스트라이크 존 통과 체크
+  useEffect(() => {
+    if (!isAnimating || !result) return
+    const currentPos = result.trajectory[animationIndex]
+    if (currentPos && currentPos.z <= -18.44 && !showJudgment) {
+      setShowJudgment(true)
+    }
+  }, [animationIndex, isAnimating, result, showJudgment])
 
   const currentPosition: Vector3 = result && result.trajectory[animationIndex]
     ? result.trajectory[animationIndex]
@@ -75,6 +86,12 @@ export function PitchSimulator() {
             <CompletedTrajectoryLine points={completedTrajectory} />
           )}
         </Scene3D>
+        {/* 판정 오버레이 */}
+        {showJudgment && result && (
+          <JudgmentOverlay strike={result.isStrike}>
+            {result.isStrike ? '⚾ 스트라이크!' : '🚫 볼!'}
+          </JudgmentOverlay>
+        )}
       </ViewerSection>
 
       <ControlPanel>
@@ -100,6 +117,35 @@ const ViewerSection = styled.div`
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  position: relative;
+`
+
+const JudgmentOverlay = styled.div<{ strike: boolean }>`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 24px 48px;
+  background: ${props => props.strike ? 'rgba(76, 175, 80, 0.95)' : 'rgba(244, 67, 54, 0.95)'};
+  border: 3px solid ${props => props.strike ? '#4caf50' : '#f44336'};
+  border-radius: 12px;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+  z-index: 100;
+  pointer-events: none;
+  animation: fadeInScale 0.3s ease-out;
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
 `
 
 const ControlPanel = styled.div`

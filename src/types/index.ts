@@ -80,7 +80,7 @@ export const PHYSICS_CONSTANTS = {
   BASEBALL_RADIUS: 0.0366,          // m (기본값)
   BASEBALL_AREA: Math.PI * 0.0366 * 0.0366, // m²
   DRAG_COEFFICIENT: 0.4,            // 기본값
-  LIFT_COEFFICIENT: 0.2,            // 기본값
+  LIFT_COEFFICIENT: 1.0,            // 기본값 (0.2 → 1.0: 마그누스 효과 증대)
   MOUND_TO_PLATE: 18.44,            // m (60.5 feet)
   // GRAVITY 제거: environment.gravity 사용
 } as const

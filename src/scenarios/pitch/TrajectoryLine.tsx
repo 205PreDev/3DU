@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, memo } from 'react'
 import { Vector3 as ThreeVector3 } from 'three'
 import { Line } from '@react-three/drei'
 import { Vector3 } from '@/types'
@@ -10,9 +10,9 @@ interface TrajectoryLineProps {
 }
 
 /**
- * 투구 궤적 라인
+ * 투구 궤적 라인 (성능 최적화: memo)
  */
-export function TrajectoryLine({
+export const TrajectoryLine = memo(function TrajectoryLine({
   points,
   color = '#ff4444',
   lineWidth = 2
@@ -31,12 +31,12 @@ export function TrajectoryLine({
       dashed={false}
     />
   )
-}
+})
 
 /**
- * 완료된 궤적 라인 (파란색)
+ * 완료된 궤적 라인 (파란색, 성능 최적화: memo)
  */
-export function CompletedTrajectoryLine({ points }: { points: Vector3[] }) {
+export const CompletedTrajectoryLine = memo(function CompletedTrajectoryLine({ points }: { points: Vector3[] }) {
   return (
     <TrajectoryLine
       points={points}
@@ -44,4 +44,4 @@ export function CompletedTrajectoryLine({ points }: { points: Vector3[] }) {
       lineWidth={3}
     />
   )
-}
+})

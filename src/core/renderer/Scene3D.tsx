@@ -17,25 +17,18 @@ export function Scene3D({ children }: Scene3DProps) {
         position: [5, 3, 15],
         fov: 50,
         near: 0.1,
-        far: 1000
+        far: 50
       }}
-      shadows
       style={{ background: '#1a1a2e' }}
     >
       {/* 환경 조명 */}
-      <ambientLight intensity={0.4} />
+      <ambientLight intensity={0.5} />
 
-      {/* 주 조명 (그림자 포함) */}
+      {/* 주 조명 (그림자 제거로 성능 향상) */}
       <directionalLight
         position={[10, 10, 5]}
-        intensity={1}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        intensity={1.2}
       />
-
-      {/* 보조 조명 */}
-      <pointLight position={[-10, 5, -10]} intensity={0.3} />
 
       {/* 카메라 컨트롤 */}
       <OrbitControls

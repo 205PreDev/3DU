@@ -2,14 +2,12 @@ import { createContext, useContext, useState, ReactNode } from 'react'
 import {
   PitchParameters,
   SimulationResult,
-  PitchType,
   DEFAULT_BALL,
   DEFAULT_ENVIRONMENT
 } from '@/types'
 import { runSimulation } from '@/core/physics/simulator'
-import { PITCH_PRESETS } from '@/scenarios/pitch/presets'
 
-// v2: UI 모드 제거, SimpleModeInputs 제거
+// v3: 프리셋 제거 (직접 입력 전용)
 interface SimulationContextType {
   // 상태
   params: PitchParameters
@@ -18,7 +16,6 @@ interface SimulationContextType {
 
   // 액션
   setParams: (params: Partial<PitchParameters>) => void
-  setPreset: (pitchType: PitchType) => void
   runSimulation: () => void
   reset: () => void
 }
@@ -54,9 +51,7 @@ export function SimulationProvider({ children }: { children: ReactNode }): JSX.E
     }))
   }
 
-  const setPreset = (pitchType: PitchType): void => {
-    setParamsState(PITCH_PRESETS[pitchType])
-  }
+  // v3: setPreset 제거 (프리셋 제거)
 
   const runSim = (): void => {
     setIsSimulating(true)
@@ -75,13 +70,12 @@ export function SimulationProvider({ children }: { children: ReactNode }): JSX.E
     setResult(null)
   }
 
-  // v2: uiMode, setUIMode, setSimpleModeInputs 제거
+  // v3: setPreset 제거
   const value: SimulationContextType = {
     params,
     result,
     isSimulating,
     setParams,
-    setPreset,
     runSimulation: runSim,
     reset
   }
