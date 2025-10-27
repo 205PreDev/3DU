@@ -34,28 +34,37 @@ cd backend && npm install && npm run dev
 
 ## 🚨 긴급 작업 (우선순위 최상)
 
-**다음 세션에서 즉시 처리해야 할 사항**:
-
-1. **카메라 떨림 현상 해결** (우선순위: 높음)
-   - 문제: 고정된 카메라 시점에서 화면이 떨리는 현상
-   - 파일: `src/core/renderer/Scene3D.tsx`, `src/core/renderer/CameraController.tsx`
-   - 예상 원인: 카메라 위치/회전 업데이트 로직 또는 OrbitControls 설정
-
-2. **측면 시점 개선** (우선순위: 중간)
-   - 요구사항: 투수-포수 선상을 완전히 수직으로 보도록 시점 변경
-   - 파일: `src/core/renderer/CameraController.tsx`, `src/core/ui/CameraPresetButtons.tsx`
-   - 현재: 측면 시점이 투수-포수 선과 정확히 수직이 아님
-
-3. **X축 회전 시 공 궤적 문제** (우선순위: 높음)
-   - 문제: X축 회전 수정 시 공이 한쪽 방향으로만 휘는 현상
-   - 파일: `src/scenarios/pitch/PitchSimulator.ts`, `src/core/physics/simulator.ts`
-   - 예상 원인: 마그누스 효과 계산에서 X축 회전 벡터 처리 오류
+**다음 세션에서 즉시 처리해야 할 사항**: 없음
 
 ---
 
 ## 완료된 작업 (2025-10-27)
 
-### ✅ 카메라 컨트롤 및 리플레이 기능 구현 (최신)
+### ✅ 카메라 떨림 현상 해결 (최신)
+- **문제**: 고정된 카메라 시점에서 화면이 떨리는 현상
+- **원인**:
+  - 매 프레임마다 lerp 적용으로 부동소수점 오차 누적
+  - OrbitControls와 CameraController의 동시 제어 충돌
+- **해결**:
+  - 목표 위치 도달 시 lerp 중단 (거리 < 0.001m)
+  - OrbitControls를 `free` 모드에서만 조건부 활성화
+  - 고정 시점에서 lookAt 동기화
+- **파일**: `src/core/renderer/CameraController.tsx`, `src/core/renderer/Scene3D.tsx`, `src/scenarios/pitch/PitchSimulator.tsx`
+
+### ✅ 측면 시점 개선 (최신)
+- 투수-포수 선과 완전히 수직인 시점 구현
+- position: [15, 2.5, -9.22], target: [0, 1.5, -9.22]
+- z 좌표를 정확히 중간 지점으로 통일
+- **파일**: `src/core/renderer/CameraController.tsx`
+
+### ✅ X축 회전 시 공 궤적 문제 해결 (최신)
+- **문제 분석**: 물리 계산은 정상, UI 가이드의 잘못된 설명이 원인
+- **해결**:
+  - 회전축별 효과 설명 수정 (X축: 낙차, Y축: 백스핀/탑스핀, Z축: 좌우)
+  - 예시 프리셋 수정 (슬라이더: spinX → spinZ로 변경)
+- **파일**: `src/scenarios/pitch/PitchInputPanel.tsx`
+
+### ✅ 카메라 컨트롤 및 리플레이 기능 구현
 - 카메라 프리셋 버튼 UI 구현 (포수 시점 / 측면 / 투수 시점)
 - 리플레이 컨트롤 UI 구현 (Play/Pause, 속도 조절, 진행률 슬라이더)
 - CameraController 컴포넌트로 카메라 로직 분리
@@ -104,10 +113,11 @@ cd backend && npm install && npm run dev
 ## 현재 상태
 
 - **브랜치**: `dev` (현재 작업 중)
-- **타입 체크**: 통과 예상 (신규 파일: CameraController, CameraPresetButtons, ReplayControls)
+- **타입 체크**: ✅ 통과
 - **빌드**: 미확인
-- **최근 작업**: 카메라 컨트롤 및 리플레이 기능 구현 완료 (2025-10-27)
-- **다음 작업**: 카메라 떨림 해결 → 측면 시점 개선 → X축 회전 버그 수정
+- **최근 작업**: 카메라 떨림 해결, 측면 시점 개선, X축 회전 문제 해결 (2025-10-27)
+- **긴급 작업**: 없음
+- **다음 작업**: 사용자 테스트 및 피드백 대기
 
 ## 개발 규칙
 
@@ -159,9 +169,12 @@ cd backend && npm install && npm run dev
 
 ## ⚡ 다음 세션 시작 시 확인 사항
 
-1. **긴급 작업 섹션 확인** - 3개 긴급 작업 대기 중 (카메라 떨림, 측면 시점, X축 회전)
+1. **긴급 작업 섹션 확인** - ✅ 모든 긴급 작업 완료
 2. **브랜치 확인**: `dev` 브랜치에서 작업
-3. **타입 체크 통과 확인**: `npm run type-check`
-4. **최근 작업 테스트**: 카메라 프리셋 버튼 및 리플레이 컨트롤 동작 확인
+3. **타입 체크**: ✅ 통과 확인 완료
+4. **테스트 권장 사항**:
+   - 카메라 프리셋 버튼 (포수/투수/측면/추적/자유) 전환 시 떨림 확인
+   - 측면 시점에서 투수-포수 선이 수직으로 보이는지 확인
+   - Z축 회전으로 슬라이더/커브 궤적 테스트 (좌우 변화 확인)
 
 ---

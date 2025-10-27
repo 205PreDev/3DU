@@ -1,16 +1,18 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { ReactNode } from 'react'
+import { CameraPreset } from '@/contexts/SimulationContext'
 
 interface Scene3DProps {
   children?: ReactNode
+  cameraPreset?: CameraPreset
 }
 
 /**
  * 메인 3D 씬 컴포넌트
  * Three.js Canvas와 기본 조명, 카메라 설정
  */
-export function Scene3D({ children }: Scene3DProps) {
+export function Scene3D({ children, cameraPreset = 'free' }: Scene3DProps) {
   return (
     <Canvas
       camera={{
@@ -33,15 +35,17 @@ export function Scene3D({ children }: Scene3DProps) {
       {/* BasicMaterial 사용으로 조명 최소화 */}
       <ambientLight intensity={0.8} />
 
-      {/* 카메라 컨트롤 */}
-      <OrbitControls
-        enablePan={true}
-        enableZoom={true}
-        enableRotate={true}
-        minDistance={5}
-        maxDistance={50}
-        maxPolarAngle={Math.PI / 2}
-      />
+      {/* 카메라 컨트롤 - free 모드일 때만 활성화 */}
+      {cameraPreset === 'free' && (
+        <OrbitControls
+          enablePan={true}
+          enableZoom={true}
+          enableRotate={true}
+          minDistance={5}
+          maxDistance={50}
+          maxPolarAngle={Math.PI / 2}
+        />
+      )}
 
       {/* 자식 컴포넌트 렌더링 */}
       {children}

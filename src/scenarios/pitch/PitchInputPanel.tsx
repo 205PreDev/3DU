@@ -19,15 +19,15 @@ const PARAM_TOOLTIPS: Record<string, { description: string; effect: string }> = 
   },
   spinX: {
     description: 'X축 회전 (좌우 축)',
-    effect: '↑ 사이드스핀, 수평 변화 발생'
+    effect: '↑ 양수: 낙차 증가, 음수: 떠오르는 효과 (우완 커브 등)'
   },
   spinY: {
     description: 'Y축 회전 (상하 축)',
-    effect: '↑ 백스핀: 낙차 감소, 탑스핀: 낙차 증가'
+    effect: '↑ 백스핀(양수): 떠오름, 탑스핀(음수): 낙차 증가'
   },
   spinZ: {
     description: 'Z축 회전 (전후 축)',
-    effect: '↑ 수평 회전 변화'
+    effect: '↑ 양수: 1루 방향, 음수: 3루 방향 (슬라이더/커브)'
   },
   releaseX: {
     description: '릴리스 포인트 X축 (좌우)',
@@ -78,14 +78,14 @@ const PARAM_TOOLTIPS: Record<string, { description: string; effect: string }> = 
 // 투구 폼별 예시 데이터 (릴리스 포인트 포함)
 const PITCH_FORM_EXAMPLES = {
   overhandRight: {
-    name: '오버핸드 우완',
+    name: '오버핸드 우완 (포심)',
     releaseX: 0.4, releaseY: 2.0, releaseZ: 0.0,
     velocity: 40, horizontal: 0, vertical: -2, spinX: 0, spinY: 2400, spinZ: 0
   },
   sidearmRight: {
     name: '사이드암 우완',
     releaseX: 0.5, releaseY: 1.5, releaseZ: 0.0,
-    velocity: 38, horizontal: -1, vertical: -1, spinX: 800, spinY: 1800, spinZ: 0
+    velocity: 38, horizontal: -1, vertical: -1, spinX: 0, spinY: 1800, spinZ: 800
   },
   underhandRight: {
     name: '언더핸드 우완',
@@ -93,14 +93,14 @@ const PITCH_FORM_EXAMPLES = {
     velocity: 35, horizontal: 0, vertical: 1, spinX: 0, spinY: 2200, spinZ: 0
   },
   overhandLeft: {
-    name: '오버핸드 좌완',
+    name: '오버핸드 좌완 (포심)',
     releaseX: -0.4, releaseY: 2.0, releaseZ: 0.0,
     velocity: 40, horizontal: 0, vertical: -2, spinX: 0, spinY: 2400, spinZ: 0
   },
   sliderLeft: {
     name: '좌완 슬라이더',
     releaseX: -0.4, releaseY: 1.9, releaseZ: 0.2,
-    velocity: 35, horizontal: 2, vertical: -3, spinX: -500, spinY: 1500, spinZ: 0
+    velocity: 35, horizontal: 2, vertical: -3, spinX: 0, spinY: 1500, spinZ: -800
   }
 }
 

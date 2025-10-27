@@ -26,10 +26,10 @@ const CAMERA_PRESETS: Record<CameraPreset, CameraConfig | null> = {
     position: [0, 1.8, 2],     // 마운드 뒤쪽 (릴리스 포인트가 잘 보임)
     target: [0, 1.2, -18.44]   // 스트라이크존을 바라봄
   },
-  // 측면 시점: x축으로 떨어진 곳에서 z축과 수직으로 마운드-홈플레이트 구간을 봄
+  // 측면 시점: x축으로 떨어진 곳에서 z축과 완전히 수직으로 마운드-홈플레이트 구간을 봄
   side: {
-    position: [10, 2, -9],     // x축으로 10m 떨어진 측면
-    target: [0, 1.2, -9]       // 중간 지점을 바라봄
+    position: [15, 2.5, -9.22],     // x축으로 15m 떨어진 측면, 투수-포수 중간 높이
+    target: [0, 1.5, -9.22]         // 투수-포수 선의 정중앙 (z=0과 z=-18.44의 중간)
   },
   follow: null,  // 동적으로 처리
   free: null     // OrbitControls 사용
@@ -42,7 +42,6 @@ const CAMERA_PRESETS: Record<CameraPreset, CameraConfig | null> = {
 export function CameraController({ preset, ballPosition }: CameraControllerProps) {
   const { camera } = useThree()
   const targetPos = useRef(new ThreeVector3())
-  const currentPos = useRef(new ThreeVector3())
 
   // 프리셋 변경 시 카메라 위치 설정
   useEffect(() => {
@@ -53,10 +52,6 @@ export function CameraController({ preset, ballPosition }: CameraControllerProps
 
     // 목표 위치 설정
     targetPos.current.set(...config.position)
-    currentPos.current.copy(camera.position)
-
-    // 즉시 카메라 lookAt 적용
-    camera.lookAt(...config.target)
   }, [preset, camera])
 
   // 부드러운 카메라 전환 애니메이션
@@ -85,9 +80,32 @@ export function CameraController({ preset, ballPosition }: CameraControllerProps
       camera.lookAt(currentLookAt)
     }
 
+    // 목표 위치까지의 거리 계산
+    const distance = camera.position.distanceTo(targetPos.current)
+
+    // 충분히 가까우면 lerp 중단 (떨림 방지)
+    if (distance < 0.001) {
+      // 고정 시점인 경우 lookAt 적용
+      if (preset !== 'follow') {
+        const config = CAMERA_PRESETS[preset]
+        if (config) {
+          camera.lookAt(...config.target)
+        }
+      }
+      return
+    }
+
     // Lerp로 부드러운 이동 (0.5초 전환)
     const lerpFactor = Math.min(delta * 2, 1)
     camera.position.lerp(targetPos.current, lerpFactor)
+
+    // 고정 시점인 경우 이동 중에도 lookAt 유지
+    if (preset !== 'follow') {
+      const config = CAMERA_PRESETS[preset]
+      if (config) {
+        camera.lookAt(...config.target)
+      }
+    }
   })
 
   return null

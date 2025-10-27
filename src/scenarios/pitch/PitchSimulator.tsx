@@ -101,7 +101,7 @@ export function PitchSimulator() {
   return (
     <Container>
       <ViewerSection>
-        <Scene3D>
+        <Scene3D cameraPreset={cameraPreset}>
           <Grid />
           <Field />
 
