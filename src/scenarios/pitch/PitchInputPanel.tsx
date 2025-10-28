@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import styled from 'styled-components'
 import { useSimulation } from '@/contexts/SimulationContext'
+import { useGraphics } from '@/contexts/GraphicsContext'
 import { PitchParameters } from '@/types'
 
 // 파라미터 설명
@@ -109,8 +110,13 @@ const PITCH_FORM_EXAMPLES = {
  */
 export function PitchInputPanel() {
   const { params, setParams, runSimulation, isSimulating } = useSimulation()
+  const { settings } = useGraphics()
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
   const [showExamples, setShowExamples] = useState(false)
+
+  const handleRunSimulation = () => {
+    runSimulation(settings.trajectoryDt)
+  }
 
   const handleInputChange = (category: keyof PitchParameters, field: string, value: number) => {
     setParams({
@@ -303,8 +309,6 @@ export function PitchInputPanel() {
                 value={params.initial.releasePoint.x}
                 onChange={(e) => handleReleasePointChange('x', Number(e.target.value))}
                 step="0.1"
-                min="-1"
-                max="1"
               />
             </div>
             <div>
@@ -314,8 +318,6 @@ export function PitchInputPanel() {
                 value={params.initial.releasePoint.y}
                 onChange={(e) => handleReleasePointChange('y', Number(e.target.value))}
                 step="0.1"
-                min="1"
-                max="2.5"
               />
             </div>
             <div>
@@ -325,8 +327,6 @@ export function PitchInputPanel() {
                 value={params.initial.releasePoint.z}
                 onChange={(e) => handleReleasePointChange('z', Number(e.target.value))}
                 step="0.1"
-                min="-0.5"
-                max="0.5"
               />
             </div>
           </SpinInputs>
@@ -375,7 +375,7 @@ export function PitchInputPanel() {
 
         <InputGroup>
           <LabelWithTooltip label="습도 (%)" tooltipKey="humidity" activeTooltip={activeTooltip} setActiveTooltip={setActiveTooltip} />
-          <Input type="number" value={params.environment.humidity} onChange={(e) => handleInputChange('environment', 'humidity', Number(e.target.value))} step="1" min="0" max="100" />
+          <Input type="number" value={params.environment.humidity} onChange={(e) => handleInputChange('environment', 'humidity', Number(e.target.value))} step="1" />
         </InputGroup>
 
         <InfoText>
@@ -383,7 +383,7 @@ export function PitchInputPanel() {
         </InfoText>
       </InputSection>
 
-      <SimulateButton onClick={runSimulation} disabled={isSimulating}>
+      <SimulateButton onClick={handleRunSimulation} disabled={isSimulating}>
         {isSimulating ? '시뮬레이션 중...' : '⚾ 시뮬레이션 시작'}
       </SimulateButton>
     </Panel>
