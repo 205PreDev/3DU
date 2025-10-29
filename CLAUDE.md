@@ -12,10 +12,9 @@ Claude Code 작업 지침 파일
 ```bash
 # 프론트엔드
 npm install && npm run dev
-
-# 백엔드
-cd backend && npm install && npm run dev
 ```
+
+**테스트 계정**: 회원가입 페이지(`/signup`)에서 생성
 
 ## 아키텍처
 
@@ -40,13 +39,13 @@ cd backend && npm install && npm run dev
 
 ## 📋 예정된 작업 (UI/UX 개선)
 
-### Phase 2: 저장 및 비교 기능 (진행 중)
-1. **비교 모드 구현** (설계 명세서 3.10 기준)
-   - 2개 시뮬레이션 동시 실행
-   - 궤적 오버레이 (파랑/빨강)
-   - 환경 변수 옵션: 독립/통일
-   - 계측값 표 + 차이값 표시
-   - 리플레이 동기화
+### Phase 2: 저장 및 비교 기능 ✅ 완료 (2025-10-30)
+1. **비교 모드 구현** ✅
+   - ✅ 2개 실험 선택 UI (드롭다운)
+   - ✅ 궤적 오버레이 (파랑/빨강)
+   - ✅ 계측값 표 + 차이값 표시
+   - ❌ 환경 변수 옵션: 독립/통일 (보류)
+   - ❌ 리플레이 동기화 (보류)
 
 ### Phase 3: 반응형 및 접근성
 2. **반응형 레이아웃**
@@ -66,6 +65,55 @@ cd backend && npm install && npm run dev
 - ❌ 교사-학생 과제 기능 (Phase 4 이후)
 - ❌ 학습 진행도 (불필요)
 - ❌ 체험하기 버튼 (데모 영상으로 대체)
+- ❌ 스트라이크 존 판정 오류 (존 내부인데 볼 판정)
+
+---
+
+## 완료된 작업 (2025-10-30)
+
+### ✅ Supabase Auth 및 비교 모드 구현 (최신)
+
+#### 1. Supabase 데이터베이스 구축
+- **테이블 생성**:
+  - `profiles`: 사용자 프로필 (username, role)
+  - `experiments`: 실험 저장 (JSONB로 params + result)
+  - `minigame_scores`: 미니게임 기록
+- **RLS 정책**: 로그인 필수, 자신의 데이터만 접근
+- **Auth 트리거**: 회원가입 시 프로필 자동 생성
+- **파일**: `archive/데이터베이스_구축_계획.md`
+
+#### 2. 로그인/회원가입 UI
+- **컴포넌트**: `LoginPage.tsx`, `SignupPage.tsx`, `ProtectedRoute.tsx`
+- **기능**:
+  - 이메일/비밀번호 인증
+  - username, role 입력
+  - 로그인 가드 (미로그인 시 리디렉션)
+  - LocalStorage → Supabase 자동 마이그레이션
+- **라우팅**: `/login`, `/signup`, `/pitch`
+- **파일**: `src/pages/`, `src/components/ProtectedRoute.tsx`
+
+#### 3. 실험 저장/불러오기 Supabase 연동
+- **API 레이어**: `src/lib/supabaseApi.ts`, `src/utils/supabaseExperiments.ts`
+- **기능**:
+  - 실험 목록 조회 (최신순 20개)
+  - 실험 저장/삭제
+  - LocalStorage 마이그레이션 (일회성)
+- **이미 구현**: `RecentExperimentsPanel`이 Supabase 사용 중
+
+#### 4. 비교 모드 구현
+- **Context**: `ComparisonContext.tsx` (상태 관리)
+- **UI**: `ComparisonPanel.tsx` (2개 실험 선택)
+- **3D 렌더링**: 2개 궤적 동시 표시
+  - 실험 A: 파란색 (`#4444ff`)
+  - 실험 B: 빨간색 (`#ff4444`)
+- **비교 표**: `ComparisonResultTable.tsx`
+  - 6개 항목 비교 (판정, 비행시간, 최고높이, 수평변화, 수직낙차, 통과높이)
+  - 차이값 표시 (오렌지색)
+- **파일**: `src/contexts/ComparisonContext.tsx`, `src/core/ui/ComparisonPanel.tsx`, `src/core/ui/ComparisonResultTable.tsx`
+
+#### 5. 버그 수정
+- **finalVelocity 타입 오류**: Vector3 → 크기 계산으로 수정
+- **horizontalMovement**: `horizontalBreak`로 수정
 
 ---
 
@@ -258,27 +306,23 @@ cd backend && npm install && npm run dev
 ## 현재 상태
 
 - **브랜치**: `dev` (현재 작업 중)
-- **타입 체크**: ✅ 통과 (supabase.ts 에러는 기존 이슈)
+- **타입 체크**: ✅ 통과
 - **빌드**: 미확인
-- **최근 작업**: 애니메이션 최적화 + 그래픽 설정 + 디버그 패널 구현 (2025-10-28)
-- **긴급 작업**:
-  1. **렌더링 최적화** (최우선) - 애니메이션 중 FPS 9-15 (목표 30)
-     - TrajectoryLine 리렌더링 최소화
-     - 궤적 포인트 간격 조정 또는 목표 FPS 하향
-  2. **버그 수정**:
-     - finalVelocity 타입 오류 (Vector3 → number)
-     - horizontalMovement NaN 계산 오류
-  3. Supabase 데이터베이스 마이그레이션 (LocalStorage → 클라우드)
-  4. 파라미터 입력 제한 해제 + 도움말 가이드라인 추가
-  5. 키보드 단축키 기능 구현 (Space 외 미구현)
-  6. 우측 패널 숨기기 기능 (미구현)
-- **다음 작업**: 렌더링 최적화 → 버그 수정 → 비교 모드 구현
-- **데이터베이스**: Supabase 프로젝트 연결 (https://poxmraxgryatmjqjzqol.supabase.co)
-  - ⚠️ 토큰 인증 이슈 (테이블 조회 불가)
-- **성능 현황**:
-  - 물리 계산: 1.6-4.7 ms (최적화 완료)
-  - 렌더링: 9-15 FPS (최적화 필요)
-  - 병목: TrajectoryLine + Ball 애니메이션 (105ms/프레임)
+- **최근 작업**: Supabase Auth + 비교 모드 구현 (2025-10-30)
+- **주요 기능**:
+  - ✅ 로그인/회원가입
+  - ✅ 실험 저장/불러오기 (Supabase)
+  - ✅ 비교 모드 (2개 궤적 동시 표시 + 비교 표)
+  - ✅ 그래픽 설정 (FPS, DPR, 폴리곤, 시야각 등)
+  - ✅ 디버그 패널 (성능 모니터링)
+- **데이터베이스**: Supabase (https://poxmraxgryatmjqjzqol.supabase.co)
+  - ✅ 테이블: profiles, experiments, minigame_scores
+  - ✅ RLS 정책 적용
+  - ✅ Auth 트리거 설정
+- **알려진 이슈**:
+  - 렌더링 최적화 필요 (애니메이션 중 FPS 9-15)
+  - 스트라이크 존 판정 오류 (일부 케이스)
+- **다음 작업**: Phase 3 (반응형 레이아웃, QR 코드)
 
 ## 개발 규칙
 
@@ -324,21 +368,19 @@ cd backend && npm install && npm run dev
 
 ---
 
-**마지막 업데이트**: 2025-10-28 23:59
+**마지막 업데이트**: 2025-10-30
 
 ---
 
 ## ⚡ 다음 세션 시작 시 확인 사항
 
-1. **긴급 작업 섹션 확인** - ⚠️ 렌더링 최적화 및 버그 수정 필요
+1. **긴급 작업 섹션 확인** - 없음
 2. **브랜치 확인**: `dev` 브랜치에서 작업
 3. **타입 체크**: ✅ 통과 확인 완료
-4. **우선순위 작업**:
-   - **렌더링 최적화**: 애니메이션 중 FPS 9-15 → 30 목표
-   - **버그 수정**: finalVelocity, horizontalMovement
-5. **테스트 권장 사항**:
-   - 그래픽 설정 변경 후 FPS 변화 확인
-   - 저사양/중간/고사양 프리셋 테스트
-   - 디버그 패널 및 콘솔 출력 확인
+4. **테스트 권장 사항**:
+   - 회원가입/로그인 테스트
+   - 실험 저장 후 비교 모드 테스트
+   - LocalStorage 마이그레이션 확인 (개발자 도구 콘솔)
+5. **다음 Phase**: Phase 3 (반응형 레이아웃)
 
 ---

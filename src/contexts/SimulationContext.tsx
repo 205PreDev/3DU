@@ -154,9 +154,14 @@ export function SimulationProvider({ children }: { children: ReactNode }): JSX.E
       console.log('')
       console.log('🎯 결과')
       console.log(`  ${simResult.isStrike ? '✅ 스트라이크' : '❌ 볼'}`)
-      console.log(`  📏 수평 변화: ${(simResult.horizontalMovement * 100).toFixed(1)} cm`)
+      console.log(`  📏 수평 변화: ${(simResult.horizontalBreak * 100).toFixed(1)} cm`)
       console.log(`  📐 수직 낙차: ${(simResult.verticalDrop * 100).toFixed(1)} cm`)
-      console.log(`  🚀 최종 속도: ${simResult.finalVelocity.toFixed(1)} m/s`)
+      const finalSpeed = Math.sqrt(
+        simResult.finalVelocity.x ** 2 +
+        simResult.finalVelocity.y ** 2 +
+        simResult.finalVelocity.z ** 2
+      )
+      console.log(`  🚀 최종 속도: ${finalSpeed.toFixed(1)} m/s`)
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 
     } catch (error) {

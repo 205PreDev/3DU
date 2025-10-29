@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 import { useSimulation } from '@/contexts/SimulationContext'
+import { useComparison } from '@/contexts/ComparisonContext'
 import { Scene3D } from '@/core/renderer/Scene3D'
 import { Grid } from '@/core/renderer/Grid'
 import { Field } from './Field'
@@ -40,6 +41,7 @@ export function PitchSimulator() {
     setParams
   } = useSimulation()
   const { settings } = useGraphics()
+  const { experimentA, experimentB, isComparing } = useComparison()
   const [animationIndex, setAnimationIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [hasReachedPlate, setHasReachedPlate] = useState(false)
@@ -319,17 +321,39 @@ export function PitchSimulator() {
             {/* 카메라 제어 */}
             <CameraController preset={cameraPreset} ballPosition={currentPosition} />
 
-            {/* 공 */}
-            <Ball3D position={currentPosition} />
+            {isComparing ? (
+              <>
+                {/* 비교 모드: 2개 궤적 동시 표시 */}
+                {experimentA && (
+                  <TrajectoryLine
+                    points={experimentA.result.trajectory}
+                    color="#4444ff"
+                    lineWidth={3}
+                  />
+                )}
+                {experimentB && (
+                  <TrajectoryLine
+                    points={experimentB.result.trajectory}
+                    color="#ff4444"
+                    lineWidth={3}
+                  />
+                )}
+              </>
+            ) : (
+              <>
+                {/* 일반 모드 */}
+                <Ball3D position={currentPosition} />
 
-            {/* 진행 중인 궤적 */}
-            {(isAnimating || isReplaying) && currentTrajectory.length > 1 && (
-              <TrajectoryLine points={currentTrajectory} />
-            )}
+                {/* 진행 중인 궤적 */}
+                {(isAnimating || isReplaying) && currentTrajectory.length > 1 && (
+                  <TrajectoryLine points={currentTrajectory} />
+                )}
 
-            {/* 완료된 궤적 */}
-            {!isAnimating && !isReplaying && completedTrajectory.length > 1 && (
-              <CompletedTrajectoryLine points={completedTrajectory} />
+                {/* 완료된 궤적 */}
+                {!isAnimating && !isReplaying && completedTrajectory.length > 1 && (
+                  <CompletedTrajectoryLine points={completedTrajectory} />
+                )}
+              </>
             )}
           </Scene3D>
         </ViewerSection>
