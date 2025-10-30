@@ -168,7 +168,14 @@ export function PitchSimulator() {
         case ' ':
           e.preventDefault()
           if (result) {
-            setIsReplaying(prev => !prev)
+            setIsReplaying(prev => {
+              // 리플레이 시작 시 현재 애니메이션 위치를 replayTime으로 동기화
+              if (!prev) {
+                const currentTime = animationIndex / 30  // 30fps 가정
+                setReplayTime(currentTime)
+              }
+              return !prev
+            })
           }
           break
         case 'r':
@@ -246,7 +253,7 @@ export function PitchSimulator() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [result, isReplaying, isHelpModalOpen, setIsReplaying, setReplayTime, setPlaybackSpeed, setCameraPreset])
+  }, [result, isReplaying, isHelpModalOpen, setIsReplaying, setReplayTime, setPlaybackSpeed, setCameraPreset, animationIndex])
 
   // 우측 패널 탭 구성
   const rightPanelTabs: Tab[] = [
