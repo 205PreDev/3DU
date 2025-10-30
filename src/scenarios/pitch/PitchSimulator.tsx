@@ -6,6 +6,7 @@ import { Scene3D } from '@/core/renderer/Scene3D'
 import { Grid } from '@/core/renderer/Grid'
 import { Field } from './Field'
 import { Ball3D } from './Ball3D'
+import { Pitcher3D } from './Pitcher3D'
 import { TrajectoryLine, CompletedTrajectoryLine } from './TrajectoryLine'
 import { PitchInputPanel } from './PitchInputPanel'
 import { ResultPanel } from '@/core/ui/ResultPanel'
@@ -317,6 +318,19 @@ export function PitchSimulator() {
           <Scene3D cameraPreset={cameraPreset}>
             <Grid />
             <Field />
+
+            {/* 투수 모델 */}
+            {!isComparing && (
+              <Pitcher3D
+                params={params}
+                isPitching={isAnimating || isReplaying}
+                animationProgress={
+                  result && result.trajectory.length > 0
+                    ? Math.min(1.0, animationIndex / (result.trajectory.length * 0.2))
+                    : 0
+                }
+              />
+            )}
 
             {/* 카메라 제어 */}
             <CameraController preset={cameraPreset} ballPosition={currentPosition} />

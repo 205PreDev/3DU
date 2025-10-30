@@ -180,10 +180,13 @@ function FAQ() {
         <Question>Q. 회전축(X/Y/Z)의 의미는 무엇인가요?</Question>
         <Answer>
           <AnswerList>
-            <li><strong>X축</strong>: 좌우 축 회전 (낙차 증가/감소)</li>
-            <li><strong>Y축</strong>: 상하 축 회전 (백스핀/탑스핀)</li>
-            <li><strong>Z축</strong>: 전후 축 회전 (좌우 변화, 슬라이더/커브)</li>
+            <li><strong>X축 회전</strong>: 백스핀/탑스핀 (공이 떠오름/낙차)</li>
+            <li><strong>Y축 회전</strong>: 좌우 변화 (슬라이더, 커브볼)</li>
+            <li><strong>Z축 회전</strong>: 총알회전 (진행 방향 축, 궤적 변화 거의 없음)</li>
           </AnswerList>
+          <p style={{ marginTop: '8px', fontSize: '12px', color: '#aaa' }}>
+            ※ Z축 회전은 교육용으로, 실제 투구에서는 거의 사용되지 않습니다.
+          </p>
         </Answer>
       </FAQItem>
 
@@ -207,6 +210,22 @@ function FAQ() {
           </AnswerList>
           <p style={{ marginTop: '8px', fontSize: '12px', color: '#aaa' }}>
             ※ 교육 목적으로 범위 제한이 해제되었습니다. 극단적인 값은 비현실적인 결과를 초래할 수 있습니다.
+          </p>
+        </Answer>
+      </FAQItem>
+
+      <FAQItem>
+        <Question>Q. 구종별 파라미터 예시를 알려주세요</Question>
+        <Answer>
+          <AnswerList>
+            <li><strong>포심 패스트볼</strong>: 속도 40m/s, X축 +2400rpm (백스핀)</li>
+            <li><strong>커브볼</strong>: 속도 30m/s, X축 -1500rpm (탑스핀), Y축 -1200rpm (3루 방향)</li>
+            <li><strong>슬라이더</strong>: 속도 35m/s, X축 +1500rpm, Y축 -800rpm (3루 방향)</li>
+            <li><strong>체인지업</strong>: 속도 32m/s, X축 +1200rpm (약한 백스핀)</li>
+            <li><strong>싱커</strong>: 속도 38m/s, X축 -1500rpm (탑스핀, 낙차)</li>
+          </AnswerList>
+          <p style={{ marginTop: '8px', fontSize: '12px', color: '#aaa' }}>
+            ※ "파라미터" 탭의 "투구 폼 예시" 버튼을 클릭하면 자동으로 입력됩니다.
           </p>
         </Answer>
       </FAQItem>

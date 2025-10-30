@@ -50,10 +50,27 @@ export class PitchSimulator {
     const horizontalAngleRad = (this.params.initial.angle.horizontal * Math.PI) / 180
     const verticalAngleRad = (this.params.initial.angle.vertical * Math.PI) / 180
 
+    // 릴리스 포인트에서 홈플레이트 중심으로 향하는 자연스러운 궤적 계산
+    // 홈플레이트는 (0, 1.0, -18.44) 위치 (대략적인 스트라이크 존 중심)
+    const targetX = 0
+    const targetZ = -PHYSICS_CONSTANTS.MOUND_TO_PLATE
+    const releaseX = this.params.initial.releasePoint.x
+    const releaseZ = this.params.initial.releasePoint.z
+
+    // 릴리스 포인트에서 홈플레이트까지의 수평 변위
+    const deltaX = targetX - releaseX
+    const deltaZ = targetZ - releaseZ
+
+    // 자연스러운 투구 각도 (릴리스 포인트 → 홈플레이트 중심)
+    const naturalHorizontalAngle = Math.atan2(deltaX, -deltaZ)
+
+    // 사용자 입력 각도를 자연 각도에 더함 (미세 조정 가능)
+    const adjustedHorizontalAngleRad = naturalHorizontalAngle + horizontalAngleRad
+
     const initialVelocity: Vector3 = {
-      x: this.params.initial.velocity * Math.sin(horizontalAngleRad) * Math.cos(verticalAngleRad),
+      x: this.params.initial.velocity * Math.sin(adjustedHorizontalAngleRad) * Math.cos(verticalAngleRad),
       y: this.params.initial.velocity * Math.sin(verticalAngleRad),
-      z: -this.params.initial.velocity * Math.cos(horizontalAngleRad) * Math.cos(verticalAngleRad)
+      z: -this.params.initial.velocity * Math.cos(adjustedHorizontalAngleRad) * Math.cos(verticalAngleRad)
     }
 
     let state: SimulationState = {
@@ -120,18 +137,21 @@ export class PitchSimulator {
   }
 
   /**
-   * 스트라이크 판정
+   * 스트라이크 판정 (v3: 공이 스트라이크 존에 접촉하면 스트라이크)
    * 스트라이크 존: x: ±0.22m, y: 0.5m ~ 1.1m (대략적인 값)
+   * 공 반지름을 고려하여 접촉 판정
    */
   private checkStrike(x: number, y: number): boolean {
     const STRIKE_ZONE_WIDTH = 0.44  // m (약 43cm)
     const STRIKE_ZONE_TOP = 1.1     // m
     const STRIKE_ZONE_BOTTOM = 0.5  // m
+    const ballRadius = this.params.ball.radius
 
+    // 공이 스트라이크 존과 접촉하는지 확인 (공 반지름 만큼 확장)
     return (
-      Math.abs(x) <= STRIKE_ZONE_WIDTH / 2 &&
-      y >= STRIKE_ZONE_BOTTOM &&
-      y <= STRIKE_ZONE_TOP
+      Math.abs(x) <= STRIKE_ZONE_WIDTH / 2 + ballRadius &&
+      y >= STRIKE_ZONE_BOTTOM - ballRadius &&
+      y <= STRIKE_ZONE_TOP + ballRadius
     )
   }
 }
