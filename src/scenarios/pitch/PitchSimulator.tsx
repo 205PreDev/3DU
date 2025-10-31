@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import styled from 'styled-components'
 import { useSimulation } from '@/contexts/SimulationContext'
 import { useComparison } from '@/contexts/ComparisonContext'
@@ -47,15 +47,25 @@ export function PitchSimulator() {
   const [isAnimating, setIsAnimating] = useState(false)
   const [hasReachedPlate, setHasReachedPlate] = useState(false)
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
+  const [showBall, setShowBall] = useState(false) // 공 표시 여부 (48프레임 후)
+  const [pitcherStartTrigger, setPitcherStartTrigger] = useState(0) // 투수 애니메이션 시작 트리거
 
-  // 시뮬레이션 결과가 나오면 애니메이션 시작 및 판정 초기화
+  // 시뮬레이션 결과가 나오면 투수 애니메이션 트리거 증가
   useEffect(() => {
     if (result && result.trajectory.length > 0) {
       setAnimationIndex(0)
-      setIsAnimating(true)
-      setHasReachedPlate(false)  // 판정 초기화
+      setIsAnimating(false) // 공 애니메이션은 아직 시작 안 함
+      setHasReachedPlate(false)
+      setShowBall(false) // 공 숨김
+      setPitcherStartTrigger(prev => prev + 1) // 트리거 증가 → 투수 애니메이션 시작
     }
   }, [result])
+
+  // 투수 릴리스 프레임 도달 시 콜백 (48프레임)
+  const handlePitcherRelease = useCallback(() => {
+    setShowBall(true) // 공 표시
+    setIsAnimating(true) // 공 애니메이션 시작
+  }, [])
 
   // 애니메이션 프레임 업데이트 (requestAnimationFrame 사용)
   useEffect(() => {
@@ -330,12 +340,13 @@ export function PitchSimulator() {
             {!isComparing && (
               <Pitcher3D
                 params={params}
-                isPitching={isAnimating || isReplaying}
+                startTrigger={pitcherStartTrigger}
                 animationProgress={
                   result && result.trajectory.length > 0
                     ? Math.min(1.0, animationIndex / (result.trajectory.length * 0.2))
                     : 0
                 }
+                onReleaseFrame={handlePitcherRelease}
               />
             )}
 
@@ -362,16 +373,16 @@ export function PitchSimulator() {
               </>
             ) : (
               <>
-                {/* 일반 모드 */}
-                <Ball3D position={currentPosition} />
+                {/* 일반 모드 - 공은 48프레임 후에만 표시 */}
+                {showBall && <Ball3D position={currentPosition} />}
 
                 {/* 진행 중인 궤적 */}
-                {(isAnimating || isReplaying) && currentTrajectory.length > 1 && (
+                {showBall && (isAnimating || isReplaying) && currentTrajectory.length > 1 && (
                   <TrajectoryLine points={currentTrajectory} />
                 )}
 
                 {/* 완료된 궤적 */}
-                {!isAnimating && !isReplaying && completedTrajectory.length > 1 && (
+                {showBall && !isAnimating && !isReplaying && completedTrajectory.length > 1 && (
                   <CompletedTrajectoryLine points={completedTrajectory} />
                 )}
               </>

@@ -79,6 +79,14 @@ export function Scene3D({ children, cameraPreset = 'free' }: Scene3DProps) {
     >
       {/* BasicMaterial 사용으로 조명 최소화 */}
       <ambientLight intensity={0.8} />
+      {/* 상단 조명 추가 (투수 모델 조명) */}
+      <directionalLight
+        position={[0, 30, -5]}
+        intensity={1.2}
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+      />
 
       {/* 카메라 컨트롤 - free 모드일 때만 활성화 */}
       {cameraPreset === 'free' && (

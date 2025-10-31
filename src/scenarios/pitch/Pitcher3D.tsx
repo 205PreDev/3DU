@@ -1,148 +1,183 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import * as THREE from 'three'
+import { FBXLoader } from 'three-stdlib'
 import { PitchParameters } from '@/types'
 
 interface Pitcher3DProps {
   params: PitchParameters
-  isPitching: boolean
+  startTrigger: number // 버튼 클릭 카운트 (증가할 때마다 애니메이션 시작)
   animationProgress: number // 0~1 (0: 준비, 1: 릴리스 완료)
+  onReleaseFrame?: () => void // 48프레임 도달 시 콜백
 }
 
 /**
- * 간단한 투수 모델 (본 애니메이션)
- * 릴리스 포인트, 투구 각도에 따라 팔/손 동작 변화
+ * FBX 투수 모델 (Blender 모델)
+ * startTrigger가 증가할 때마다 1프레임부터 애니메이션 재생
  */
-export function Pitcher3D({ params, isPitching, animationProgress }: Pitcher3DProps) {
+export function Pitcher3D({ params, startTrigger, onReleaseFrame }: Pitcher3DProps) {
   const groupRef = useRef<THREE.Group>(null)
-  const upperArmRef = useRef<THREE.Mesh>(null)
-  const forearmRef = useRef<THREE.Mesh>(null)
-  const handRef = useRef<THREE.Mesh>(null)
+  const [model, setModel] = useState<THREE.Group | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null)
+  const actionRef = useRef<THREE.AnimationAction | null>(null)
+  const clockRef = useRef<THREE.Clock>(new THREE.Clock())
+  const currentFrameRef = useRef(0)
+  const hasReleasedRef = useRef(false)
+  const animationDurationRef = useRef(0) // 애니메이션 총 길이
 
-  // 투구 폼 타입 결정 (릴리스 포인트 Y 기준)
-  const pitchingStyle = useMemo(() => {
-    const releaseY = params.initial.releasePoint.y
-    if (releaseY >= 1.9) return 'overhand'
-    if (releaseY >= 1.5) return 'sidearm'
-    return 'underhand'
-  }, [params.initial.releasePoint.y])
+  // FBX 모델 로드
+  useEffect(() => {
+    const loader = new FBXLoader()
 
-  // 애니메이션 각도 계산
-  const { shoulderAngle, elbowAngle, wristAngle } = useMemo(() => {
-    const releaseX = params.initial.releasePoint.x
-    const verticalAngle = params.initial.angle.vertical
+    loader.load(
+      '/models/pitcher.fbx',
+      (fbx) => {
+        // 모델 크기 조정 (필요 시)
+        fbx.scale.set(0.01, 0.01, 0.01) // FBX 모델이 크다면 조정
 
-    // 투구 폼별 기본 각도
-    let baseShoulderAngle = 0
-    let baseElbowAngle = 0
+        // 모델 회전 (-Z 방향 바라보도록, 180도 회전)
+        fbx.rotation.y = Math.PI
 
-    switch (pitchingStyle) {
-      case 'overhand':
-        baseShoulderAngle = Math.PI * 0.5 // 90도 (팔 위로)
-        baseElbowAngle = -Math.PI * 0.3 // 팔꿈치 구부림
-        break
-      case 'sidearm':
-        baseShoulderAngle = Math.PI * 0.25 // 45도
-        baseElbowAngle = -Math.PI * 0.2
-        break
-      case 'underhand':
-        baseShoulderAngle = -Math.PI * 0.2 // 아래로
-        baseElbowAngle = -Math.PI * 0.1
-        break
+        // 그림자 설정
+        fbx.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.castShadow = true
+            child.receiveShadow = true
+          }
+        })
+
+        // 애니메이션 설정
+        if (fbx.animations && fbx.animations.length > 0) {
+          const mixer = new THREE.AnimationMixer(fbx)
+          mixerRef.current = mixer
+
+          // 애니메이션 길이 저장
+          const duration = fbx.animations[0].duration
+          animationDurationRef.current = duration
+
+          // 첫 번째 애니메이션 클립 설정
+          const action = mixer.clipAction(fbx.animations[0])
+          action.setLoop(THREE.LoopOnce, 1)
+          action.clampWhenFinished = true
+          action.paused = true // 초기 일시정지
+
+          actionRef.current = action // action 참조 저장
+
+          // 1프레임 대기 자세
+          const oneFrameTime = 1 / 30
+          action.time = oneFrameTime
+          action.play()
+          mixer.update(0)
+
+        } else {
+          console.warn('⚠️ FBX 파일에 애니메이션이 없습니다')
+        }
+
+        setModel(fbx)
+        setIsLoading(false)
+      },
+      (progress) => {
+        const percent = (progress.loaded / progress.total) * 100
+        console.log(`⏳ Pitcher 모델 로딩 중: ${percent.toFixed(1)}%`)
+      },
+      (err) => {
+        console.error('❌ Pitcher FBX 모델 로드 실패:', err)
+        setError('모델 로드 실패')
+        setIsLoading(false)
+      }
+    )
+  }, [])
+
+  // startTrigger가 증가할 때마다 애니메이션 시작
+  useEffect(() => {
+    if (startTrigger === 0 || !mixerRef.current || !actionRef.current) return
+
+    // 애니메이션 강제 초기화 및 1프레임부터 재생
+    actionRef.current.stop()
+    actionRef.current.reset()
+    actionRef.current.time = 1 / 30 // 1프레임부터 시작
+    actionRef.current.paused = false
+    actionRef.current.play()
+
+    hasReleasedRef.current = false
+    currentFrameRef.current = 0
+    clockRef.current = new THREE.Clock()
+
+    let animationId: number
+
+    const animate = () => {
+      if (!mixerRef.current || !actionRef.current) return
+
+      const delta = clockRef.current.getDelta()
+      mixerRef.current.update(delta)
+
+      // 현재 프레임 계산
+      const currentTime = actionRef.current.time
+      const frame = Math.floor(currentTime * 30)
+      currentFrameRef.current = frame
+
+      // 48프레임 도달 시 콜백 호출 (한 번만)
+      if (frame >= 48 && !hasReleasedRef.current && onReleaseFrame) {
+        hasReleasedRef.current = true
+        onReleaseFrame()
+      }
+
+      // 애니메이션 종료 확인
+      const duration = animationDurationRef.current
+      if (currentTime >= duration - 0.01) {
+        // 1프레임으로 복귀
+        actionRef.current.stop()
+        actionRef.current.reset()
+        const oneFrameTime = 1 / 30
+        actionRef.current.time = oneFrameTime
+        actionRef.current.paused = true
+        actionRef.current.play()
+        mixerRef.current.update(0)
+        return // 애니메이션 루프 종료
+      }
+
+      animationId = requestAnimationFrame(animate)
     }
 
-    // 릴리스 포인트 X에 따른 좌우 회전 (우완/좌완)
-    const sideRotation = Math.atan2(releaseX, 2.0) // 릴리스 X 위치에 따라 몸통 회전
+    animationId = requestAnimationFrame(animate)
 
-    // 애니메이션 진행에 따른 각도 변화
-    const progress = animationProgress
-    const shoulderSwing = Math.sin(progress * Math.PI) * (Math.PI * 0.4) // 어깨 스윙
-    const elbowExtension = progress * (Math.PI * 0.3) // 팔꿈치 펴기
-
-    return {
-      shoulderAngle: baseShoulderAngle + shoulderSwing,
-      elbowAngle: baseElbowAngle + elbowExtension,
-      wristAngle: verticalAngle * (Math.PI / 180), // 투구 각도 반영
-      sideRotation
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId)
+      }
     }
-  }, [params, pitchingStyle, animationProgress])
+  }, [startTrigger, onReleaseFrame])
 
   // 투수 위치 (마운드 위)
   const pitcherPosition: [number, number, number] = [0, 0, 0]
 
-  // 팔 길이 파라미터
-  const UPPER_ARM_LENGTH = 0.3
-  const FOREARM_LENGTH = 0.3
-  const HAND_LENGTH = 0.15
+  // 로딩 중이거나 에러 발생 시 대체 모델 표시
+  if (isLoading || error) {
+    return (
+      <group ref={groupRef} position={pitcherPosition}>
+        {/* 간단한 대체 모델 */}
+        <mesh position={[0, 1.0, 0]}>
+          <cylinderGeometry args={[0.2, 0.15, 0.8, 8]} />
+          <meshStandardMaterial color="#1e3a8a" />
+        </mesh>
+        <mesh position={[0, 1.5, 0]}>
+          <sphereGeometry args={[0.15, 8, 8]} />
+          <meshStandardMaterial color="#f5deb3" />
+        </mesh>
+        {isLoading && (
+          <mesh position={[0, 2.0, 0]}>
+            <boxGeometry args={[0.5, 0.1, 0.1]} />
+            <meshStandardMaterial color="#ffff00" />
+          </mesh>
+        )}
+      </group>
+    )
+  }
 
   return (
     <group ref={groupRef} position={pitcherPosition}>
-      {/* 몸통 (간단한 원기둥) */}
-      <mesh position={[0, 1.0, 0]}>
-        <cylinderGeometry args={[0.2, 0.15, 0.8, 8]} />
-        <meshStandardMaterial color="#1e3a8a" />
-      </mesh>
-
-      {/* 머리 */}
-      <mesh position={[0, 1.5, 0]}>
-        <sphereGeometry args={[0.15, 8, 8]} />
-        <meshStandardMaterial color="#f5deb3" />
-      </mesh>
-
-      {/* 다리 (왼쪽) */}
-      <mesh position={[-0.1, 0.4, 0]}>
-        <cylinderGeometry args={[0.08, 0.08, 0.8, 6]} />
-        <meshStandardMaterial color="#1e3a8a" />
-      </mesh>
-
-      {/* 다리 (오른쪽) */}
-      <mesh position={[0.1, 0.4, 0]}>
-        <cylinderGeometry args={[0.08, 0.08, 0.8, 6]} />
-        <meshStandardMaterial color="#1e3a8a" />
-      </mesh>
-
-      {/* 투구 팔 (우완 기준, releaseX 음수면 좌완) */}
-      <group position={[params.initial.releasePoint.x > 0 ? 0.2 : -0.2, 1.3, 0]}>
-        {/* 상완 (어깨~팔꿈치) */}
-        <group rotation={[shoulderAngle, 0, params.initial.releasePoint.x > 0 ? 0.3 : -0.3]}>
-          <mesh
-            ref={upperArmRef}
-            position={[0, -UPPER_ARM_LENGTH / 2, 0]}
-          >
-            <cylinderGeometry args={[0.05, 0.05, UPPER_ARM_LENGTH, 6]} />
-            <meshStandardMaterial color="#f5deb3" />
-          </mesh>
-
-          {/* 전완 (팔꿈치~손목) */}
-          <group position={[0, -UPPER_ARM_LENGTH, 0]} rotation={[elbowAngle, 0, 0]}>
-            <mesh
-              ref={forearmRef}
-              position={[0, -FOREARM_LENGTH / 2, 0]}
-            >
-              <cylinderGeometry args={[0.04, 0.04, FOREARM_LENGTH, 6]} />
-              <meshStandardMaterial color="#f5deb3" />
-            </mesh>
-
-            {/* 손 */}
-            <group position={[0, -FOREARM_LENGTH, 0]} rotation={[wristAngle, 0, 0]}>
-              <mesh
-                ref={handRef}
-                position={[0, -HAND_LENGTH / 2, 0]}
-              >
-                <boxGeometry args={[0.08, HAND_LENGTH, 0.04]} />
-                <meshStandardMaterial color="#f5deb3" />
-              </mesh>
-
-              {/* 공 (릴리스 전에만 표시) */}
-              {!isPitching && (
-                <mesh position={[0, -HAND_LENGTH, 0]}>
-                  <sphereGeometry args={[0.037, 8, 8]} />
-                  <meshStandardMaterial color="#ffffff" />
-                </mesh>
-              )}
-            </group>
-          </group>
-        </group>
-      </group>
+      {model && <primitive object={model} />}
     </group>
   )
 }
