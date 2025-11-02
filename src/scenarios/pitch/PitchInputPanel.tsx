@@ -28,7 +28,7 @@ const PARAM_TOOLTIPS: Record<string, { description: string; effect: string }> = 
   },
   spinZ: {
     description: 'Z축 회전 (총알회전)',
-    effect: '↑ 진행 방향 축 회전 (궤적 변화 거의 없음, 교육용)'
+    effect: '↑ 진행 방향 축 회전 (궤적 변화 거의 없음)'
   },
   releaseX: {
     description: '릴리스 포인트 X축 (좌우)',

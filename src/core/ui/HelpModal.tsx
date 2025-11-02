@@ -185,7 +185,7 @@ function FAQ() {
             <li><strong>Z축 회전</strong>: 총알회전 (진행 방향 축, 궤적 변화 거의 없음)</li>
           </AnswerList>
           <p style={{ marginTop: '8px', fontSize: '12px', color: '#aaa' }}>
-            ※ Z축 회전은 교육용으로, 실제 투구에서는 거의 사용되지 않습니다.
+            ※ Z축 회전은 실제 투구에서는 거의 사용되지 않습니다.
           </p>
         </Answer>
       </FAQItem>
@@ -209,7 +209,7 @@ function FAQ() {
             <li><strong>환경</strong>: 온도 -10~40°C, 기압 950~1050 hPa, 습도 0~100%</li>
           </AnswerList>
           <p style={{ marginTop: '8px', fontSize: '12px', color: '#aaa' }}>
-            ※ 교육 목적으로 범위 제한이 해제되었습니다. 극단적인 값은 비현실적인 결과를 초래할 수 있습니다.
+            ※ 범위 제한이 해제되어 있습니다. 극단적인 값은 비현실적인 결과를 초래할 수 있습니다.
           </p>
         </Answer>
       </FAQItem>
@@ -234,7 +234,7 @@ function FAQ() {
         <Question>Q. 비교 모드는 어떻게 사용하나요?</Question>
         <Answer>
           "비교" 탭에서 두 개의 시뮬레이션을 동시에 비교할 수 있습니다.
-          파라미터 변화가 결과에 미치는 영향을 직관적으로 학습할 수 있습니다.
+          파라미터 변화가 결과에 미치는 영향을 직관적으로 확인할 수 있습니다.
           (현재 구현 예정)
         </Answer>
       </FAQItem>

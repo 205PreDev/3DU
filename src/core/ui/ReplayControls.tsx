@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import { Vector3 } from '@/types'
+import { theme } from '@/styles/theme'
+import { MdMovie } from 'react-icons/md'
 
 interface ReplayControlsProps {
   trajectory: Vector3[]
@@ -9,6 +11,7 @@ interface ReplayControlsProps {
   onSpeedChange: (speed: number) => void
   isPlaying: boolean
   onPlayingChange: (playing: boolean) => void
+  initialTime?: number  // 외부에서 초기 시간 설정
 }
 
 const SPEED_OPTIONS = [0.25, 0.5, 1, 2]
@@ -23,14 +26,24 @@ export function ReplayControls({
   playbackSpeed,
   onSpeedChange,
   isPlaying,
-  onPlayingChange
+  onPlayingChange,
+  initialTime = 0
 }: ReplayControlsProps) {
-  const [currentTime, setCurrentTime] = useState(0)
+  const [currentTime, setCurrentTime] = useState(initialTime)
   const animationRef = useRef<number>()
   const lastTimeRef = useRef<number>(Date.now())
 
   // 궤적 길이를 시간으로 변환 (30fps 가정)
   const duration = trajectory.length / 30  // 초
+
+  // isPlaying이 true로 전환될 때만 initialTime 동기화
+  const prevPlayingRef = useRef(isPlaying)
+  useEffect(() => {
+    if (!prevPlayingRef.current && isPlaying) {
+      setCurrentTime(initialTime)
+    }
+    prevPlayingRef.current = isPlaying
+  }, [isPlaying, initialTime])
 
   // 재생 로직
   useEffect(() => {
@@ -88,7 +101,10 @@ export function ReplayControls({
   const handleTimelineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = parseFloat(e.target.value)
     setCurrentTime(time)
-    onPlayingChange(false)
+    // 슬라이더 드래그 시 재생만 멈추고 리플레이 모드는 유지
+    if (isPlaying) {
+      onPlayingChange(false)
+    }
   }
 
   const formatTime = (seconds: number) => {
@@ -97,7 +113,9 @@ export function ReplayControls({
 
   return (
     <Container>
-      <Title>🎬 리플레이 제어</Title>
+      <Title>
+        <MdMovie /> 리플레이 제어
+      </Title>
 
       {/* 타임라인 */}
       <Timeline>
@@ -143,141 +161,235 @@ export function ReplayControls({
 }
 
 const Container = styled.div`
-  background: #2a2a3e;
-  border-radius: 8px;
-  padding: 16px;
-  color: #ffffff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.base};
 `
 
 const Title = styled.h4`
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #4caf50;
+  margin: 0;
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.semibold};
+  color: ${theme.colors.text.secondary};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.xs};
 `
 
 const Timeline = styled.div`
   position: relative;
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.sm};
 `
 
 const TimeDisplay = styled.div`
-  font-size: 12px;
-  color: #ccc;
-  margin-bottom: 8px;
+  font-size: ${theme.typography.fontSize.xs};
+  color: ${theme.colors.text.secondary};
   text-align: center;
-  font-family: monospace;
+  font-family: ${theme.typography.fontFamily.mono};
+  font-weight: ${theme.typography.fontWeight.medium};
 `
 
 const TimelineSlider = styled.input`
   width: 100%;
-  height: 8px;
-  border-radius: 4px;
-  background: #1a1a2e;
+  height: 6px;
+  border-radius: ${theme.borderRadius.full};
+  background: ${theme.colors.background.tertiary};
   outline: none;
   cursor: pointer;
   position: relative;
   z-index: 2;
   -webkit-appearance: none;
+  appearance: none;
 
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #4caf50;
+    width: 18px;
+    height: 18px;
+    border-radius: ${theme.borderRadius.full};
+    background: ${theme.colors.primary.main};
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: ${theme.shadows.md};
+    transition: ${theme.transitions.fast};
+    border: 2px solid ${theme.colors.background.secondary};
+
+    &:hover {
+      box-shadow: ${theme.shadows.glow};
+      transform: scale(1.15);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
   }
 
   &::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #4caf50;
+    width: 18px;
+    height: 18px;
+    border-radius: ${theme.borderRadius.full};
+    background: ${theme.colors.primary.main};
     cursor: pointer;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 2px solid ${theme.colors.background.secondary};
+    box-shadow: ${theme.shadows.md};
+    transition: ${theme.transitions.fast};
+
+    &:hover {
+      box-shadow: ${theme.shadows.glow};
+      transform: scale(1.15);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
   }
 `
 
 const ProgressBar = styled.div`
   position: absolute;
-  top: 28px;
+  top: 24px;
   left: 0;
-  height: 8px;
-  background: #4caf50;
-  border-radius: 4px;
+  height: 6px;
+  background: ${theme.colors.primary.gradient};
+  border-radius: ${theme.borderRadius.full};
   pointer-events: none;
-  transition: width 0.1s linear;
+  transition: width 0.05s linear;
   z-index: 1;
+  box-shadow: 0 0 10px ${theme.colors.primary.main}50;
 `
 
 const Controls = styled.div`
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: ${theme.spacing.md};
 `
 
 const ControlButton = styled.button<{ $isPlaying?: boolean }>`
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  border: 2px solid ${props => props.$isPlaying ? '#4caf50' : '#666'};
-  background: ${props => props.$isPlaying ? 'rgba(76, 175, 80, 0.1)' : '#1a1a2e'};
-  color: ${props => props.$isPlaying ? '#4caf50' : '#ccc'};
+  border-radius: ${theme.borderRadius.full};
+  border: 2px solid ${props =>
+    props.$isPlaying
+      ? theme.colors.primary.main
+      : theme.colors.border.main
+  };
+  background: ${props =>
+    props.$isPlaying
+      ? 'rgba(0, 217, 255, 0.1)'
+      : theme.colors.background.tertiary
+  };
+  color: ${props =>
+    props.$isPlaying
+      ? theme.colors.primary.main
+      : theme.colors.text.secondary
+  };
   font-size: 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: ${theme.transitions.fast};
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: ${theme.colors.primary.gradient};
+    opacity: 0;
+    transition: ${theme.transitions.fast};
+  }
 
   &:hover {
-    border-color: #4caf50;
-    color: #4caf50;
-    background: rgba(76, 175, 80, 0.1);
-    transform: scale(1.05);
+    border-color: ${theme.colors.primary.main};
+    color: ${theme.colors.primary.light};
+    transform: scale(1.1);
+    box-shadow: ${theme.shadows.glow};
+
+    &::before {
+      opacity: 0.1;
+    }
   }
 
   &:active {
     transform: scale(0.95);
+  }
+
+  ${props => props.$isPlaying && `
+    box-shadow: 0 0 0 4px rgba(0, 217, 255, 0.2);
+  `}
+
+  /* 아이콘 위치 조정 */
+  span {
+    position: relative;
+    z-index: 1;
   }
 `
 
 const SpeedControl = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: ${theme.spacing.xs};
 `
 
 const SpeedLabel = styled.div`
-  font-size: 12px;
-  color: #888;
+  font-size: ${theme.typography.fontSize.xs};
+  color: ${theme.colors.text.tertiary};
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: ${theme.typography.fontWeight.medium};
 `
 
 const SpeedButtons = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: ${theme.spacing.xs};
 `
 
 const SpeedButton = styled.button<{ $active: boolean }>`
-  padding: 8px;
-  border: 1px solid ${props => props.$active ? '#4caf50' : '#444'};
-  border-radius: 4px;
-  background: ${props => props.$active ? '#4caf50' : '#1a1a2e'};
-  color: ${props => props.$active ? '#fff' : '#ccc'};
-  font-size: 12px;
-  font-weight: ${props => props.$active ? '600' : '400'};
+  padding: ${theme.spacing.xs} ${theme.spacing.sm};
+  border: 1.5px solid ${props =>
+    props.$active
+      ? theme.colors.primary.main
+      : theme.colors.border.main
+  };
+  border-radius: ${theme.borderRadius.md};
+  background: ${props =>
+    props.$active
+      ? 'rgba(0, 217, 255, 0.15)'
+      : theme.colors.background.tertiary
+  };
+  color: ${props =>
+    props.$active
+      ? theme.colors.primary.light
+      : theme.colors.text.secondary
+  };
+  font-size: ${theme.typography.fontSize.xs};
+  font-weight: ${theme.typography.fontWeight.semibold};
+  font-family: ${theme.typography.fontFamily.mono};
   cursor: pointer;
-  transition: all 0.2s;
+  transition: ${theme.transitions.fast};
 
   &:hover {
-    border-color: #4caf50;
-    background: ${props => props.$active ? '#45a049' : 'rgba(76, 175, 80, 0.1)'};
+    border-color: ${theme.colors.primary.main};
+    background: ${props =>
+      props.$active
+        ? 'rgba(0, 217, 255, 0.2)'
+        : 'rgba(0, 217, 255, 0.1)'
+    };
+    color: ${theme.colors.primary.light};
+    transform: translateY(-1px);
   }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  ${props => props.$active && `
+    box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.2);
+  `}
 `

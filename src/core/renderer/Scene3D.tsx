@@ -3,6 +3,7 @@ import { OrbitControls } from '@react-three/drei'
 import { ReactNode, useRef } from 'react'
 import { CameraPreset, useSimulation } from '@/contexts/SimulationContext'
 import { useGraphics } from '@/contexts/GraphicsContext'
+import { debugConfig } from '@/core/ui/DebugPanel'
 
 interface Scene3DProps {
   children?: ReactNode
@@ -41,7 +42,9 @@ function PerformanceMonitor() {
       updatePerformanceMetrics(newMetrics)
 
       // 콘솔 출력 (30프레임마다 = 약 1초마다)
-      console.log(`🎨 렌더링: ${avgRenderTime.toFixed(1)}ms | FPS: ${fps.toFixed(1)} | 프레임: ${frameCountRef.current}`)
+      if (debugConfig.rendering) {
+        console.log(`🎨 렌더링: ${avgRenderTime.toFixed(1)}ms | FPS: ${fps.toFixed(1)} | 프레임: ${frameCountRef.current}`)
+      }
 
       renderTimesRef.current = []
     }

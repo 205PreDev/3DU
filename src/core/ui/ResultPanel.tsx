@@ -1,5 +1,7 @@
 import styled from 'styled-components'
 import { SimulationResult } from '@/types'
+import { theme } from '@/styles/theme'
+import { MdSportsBaseball, MdBlock } from 'react-icons/md'
 
 interface ResultPanelProps {
   result: SimulationResult | null
@@ -65,76 +67,143 @@ export function ResultPanel({ result }: ResultPanelProps) {
 
       <JudgmentSection strike={result.isStrike}>
         <JudgmentLabel>판정</JudgmentLabel>
-        <JudgmentValue>{result.isStrike ? '⚾ 스트라이크' : '🚫 볼'}</JudgmentValue>
+        <JudgmentValue>
+          {result.isStrike ? (
+            <>
+              <MdSportsBaseball /> 스트라이크
+            </>
+          ) : (
+            <>
+              <MdBlock /> 볼
+            </>
+          )}
+        </JudgmentValue>
       </JudgmentSection>
     </Panel>
   )
 }
 
 const Panel = styled.div`
-  background: #2a2a3e;
-  border-radius: 8px;
-  padding: 20px;
-  color: #ffffff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.base};
+  min-height: 0; /* Flexbox 스크롤 허용 */
 `
 
 const Title = styled.h3`
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #ffffff;
+  margin: 0;
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
+  color: ${theme.colors.text.primary};
+  padding-bottom: ${theme.spacing.sm};
+  border-bottom: 1px solid ${theme.colors.border.light};
 `
 
-const EmptyMessage = styled.p`
-  color: #888;
-  font-size: 14px;
+const EmptyMessage = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: ${theme.spacing['2xl']};
+  color: ${theme.colors.text.tertiary};
+  font-size: ${theme.typography.fontSize.sm};
   text-align: center;
-  padding: 20px 0;
+  line-height: ${theme.typography.lineHeight.relaxed};
+
+  &::before {
+    content: '📊';
+    font-size: 48px;
+    margin-bottom: ${theme.spacing.base};
+    opacity: 0.5;
+  }
 `
 
 const ResultGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: ${theme.spacing.sm};
+  margin-bottom: ${theme.spacing.base};
 `
 
 const ResultItem = styled.div`
-  background: #1a1a2e;
-  padding: 12px;
-  border-radius: 6px;
+  background: ${theme.colors.background.tertiary};
+  padding: ${theme.spacing.md};
+  border-radius: ${theme.borderRadius.md};
+  border: 1px solid ${theme.colors.border.light};
+  transition: ${theme.transitions.fast};
+
+  &:hover {
+    border-color: ${theme.colors.border.main};
+    background: ${theme.colors.background.elevated};
+  }
 `
 
 const Label = styled.div`
-  font-size: 12px;
-  color: #888;
-  margin-bottom: 4px;
+  font-size: ${theme.typography.fontSize.xs};
+  color: ${theme.colors.text.secondary};
+  margin-bottom: ${theme.spacing.xs};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: ${theme.typography.fontWeight.medium};
 `
 
 const Value = styled.div`
-  font-size: 16px;
-  font-weight: 600;
-  color: #ffffff;
+  font-size: ${theme.typography.fontSize.md};
+  font-weight: ${theme.typography.fontWeight.semibold};
+  color: ${theme.colors.text.primary};
+  font-family: ${theme.typography.fontFamily.mono};
 `
 
 const JudgmentSection = styled.div<{ strike: boolean }>`
-  background: ${props => props.strike ? '#2d5016' : '#5e1616'};
-  padding: 16px;
-  border-radius: 6px;
+  background: ${props =>
+    props.strike
+      ? 'linear-gradient(135deg, rgba(0, 230, 118, 0.15), rgba(0, 230, 118, 0.05))'
+      : 'linear-gradient(135deg, rgba(255, 61, 113, 0.15), rgba(255, 61, 113, 0.05))'
+  };
+  padding: ${theme.spacing.base};
+  border-radius: ${theme.borderRadius.md};
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 2px solid ${props => props.strike ? '#4caf50' : '#f44336'};
+  border: 1.5px solid ${props => props.strike ? theme.colors.success : theme.colors.error};
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: ${props =>
+      props.strike
+        ? theme.colors.success
+        : theme.colors.error
+    };
+    opacity: 0;
+    transition: ${theme.transitions.normal};
+  }
+
+  &:hover::before {
+    opacity: 0.05;
+  }
 `
 
 const JudgmentLabel = styled.div`
-  font-size: 14px;
-  color: #ccc;
+  font-size: ${theme.typography.fontSize.sm};
+  color: ${theme.colors.text.secondary};
+  font-weight: ${theme.typography.fontWeight.medium};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
 `
 
 const JudgmentValue = styled.div`
-  font-size: 20px;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: ${theme.typography.fontSize.xl};
+  font-weight: ${theme.typography.fontWeight.bold};
+  color: ${theme.colors.text.primary};
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.xs};
+  position: relative;
+  z-index: 1;
 `

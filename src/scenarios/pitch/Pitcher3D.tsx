@@ -93,15 +93,24 @@ export function Pitcher3D({ params, startTrigger, onReleaseFrame }: Pitcher3DPro
   useEffect(() => {
     if (startTrigger === 0 || !mixerRef.current || !actionRef.current) return
 
+    const action = actionRef.current
+    const mixer = mixerRef.current
+
     // 애니메이션 강제 초기화 및 1프레임부터 재생
-    actionRef.current.stop()
-    actionRef.current.reset()
-    actionRef.current.time = 1 / 30 // 1프레임부터 시작
-    actionRef.current.paused = false
-    actionRef.current.play()
+    action.stop()
+    action.reset()
+    action.time = 1 / 30 // 1프레임 시간 설정
+    action.paused = true // 일시정지 상태로 설정
+    action.play()
+
+    // 0프레임 업데이트로 1프레임 자세 고정
+    mixer.update(0)
+
+    // 이제 재생 시작
+    action.paused = false
 
     hasReleasedRef.current = false
-    currentFrameRef.current = 0
+    currentFrameRef.current = 1
     clockRef.current = new THREE.Clock()
 
     let animationId: number
@@ -152,6 +161,9 @@ export function Pitcher3D({ params, startTrigger, onReleaseFrame }: Pitcher3DPro
   // 투수 위치 (마운드 위)
   const pitcherPosition: [number, number, number] = [0, 0, 0]
 
+  // 좌완 투수 판정 (릴리스 포인트 X < 0이면 좌완)
+  const isLeftHanded = params?.initial?.releasePoint?.x !== undefined && params.initial.releasePoint.x < 0
+
   // 로딩 중이거나 에러 발생 시 대체 모델 표시
   if (isLoading || error) {
     return (
@@ -177,7 +189,11 @@ export function Pitcher3D({ params, startTrigger, onReleaseFrame }: Pitcher3DPro
 
   return (
     <group ref={groupRef} position={pitcherPosition}>
-      {model && <primitive object={model} />}
+      {model && (
+        <group scale={[isLeftHanded ? -1 : 1, 1, 1]}>
+          <primitive object={model} />
+        </group>
+      )}
     </group>
   )
 }

@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import styled from 'styled-components'
+import { theme } from '@/styles/theme'
 import { useSimulation } from '@/contexts/SimulationContext'
 import { useComparison } from '@/contexts/ComparisonContext'
+import { debugConfig } from '@/core/ui/DebugPanel'
 import { Scene3D } from '@/core/renderer/Scene3D'
 import { Grid } from '@/core/renderer/Grid'
 import { Field } from './Field'
@@ -16,6 +18,7 @@ import { TopNavigationBar } from '@/core/ui/TopNavigationBar'
 import { TabContainer, Tab } from '@/core/ui/TabContainer'
 import { ComparisonPanel } from '@/core/ui/ComparisonPanel'
 import { HelpModal } from '@/core/ui/HelpModal'
+import { AccountModal } from '@/core/ui/AccountModal'
 import { RecentExperimentsPanel } from '@/core/ui/RecentExperimentsPanel'
 import { DebugPanel } from '@/core/ui/DebugPanel'
 import { GraphicsSettingsPanel } from '@/core/ui/GraphicsSettingsPanel'
@@ -43,65 +46,63 @@ export function PitchSimulator() {
   } = useSimulation()
   const { settings } = useGraphics()
   const { experimentA, experimentB, isComparing } = useComparison()
-  const [animationIndex, setAnimationIndex] = useState(0)
-  const [isAnimating, setIsAnimating] = useState(false)
   const [hasReachedPlate, setHasReachedPlate] = useState(false)
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false)
   const [showBall, setShowBall] = useState(false) // 공 표시 여부 (48프레임 후)
   const [pitcherStartTrigger, setPitcherStartTrigger] = useState(0) // 투수 애니메이션 시작 트리거
 
-  // 시뮬레이션 결과가 나오면 투수 애니메이션 트리거 증가
+  // 시뮬레이션 결과가 나오면 초기화
   useEffect(() => {
     if (result && result.trajectory.length > 0) {
-      setAnimationIndex(0)
-      setIsAnimating(false) // 공 애니메이션은 아직 시작 안 함
+      setReplayTime(0)
+      setIsReplaying(false) // 자동 재생 시작
       setHasReachedPlate(false)
       setShowBall(false) // 공 숨김
-      setPitcherStartTrigger(prev => prev + 1) // 트리거 증가 → 투수 애니메이션 시작
+      setPitcherStartTrigger(prev => prev + 1) // 투수 애니메이션 시작
     }
-  }, [result])
+  }, [result, setReplayTime, setIsReplaying])
 
   // 투수 릴리스 프레임 도달 시 콜백 (48프레임)
   const handlePitcherRelease = useCallback(() => {
     setShowBall(true) // 공 표시
-    setIsAnimating(true) // 공 애니메이션 시작
-  }, [])
+    setIsReplaying(true) // 자동 재생 시작
+  }, [setIsReplaying])
 
-  // 애니메이션 프레임 업데이트 (requestAnimationFrame 사용)
+  // 자동 재생 (isReplaying = true일 때 replayTime 자동 증가)
   useEffect(() => {
-    if (!isAnimating || !result) return
+    if (!isReplaying || !result) return
 
     let animationFrameId: number
-    let lastTimestamp = 0
+    let lastTimestamp = performance.now()
 
     const animate = (timestamp: number) => {
-      // targetFps에 따라 프레임 간격 조정
-      const frameInterval = 1000 / settings.targetFps
+      const delta = (timestamp - lastTimestamp) / 1000 // 초 단위
+      lastTimestamp = timestamp
 
-      if (timestamp - lastTimestamp >= frameInterval) {
-        lastTimestamp = timestamp
+      setReplayTime(prev => {
+        const maxTime = result.trajectory.length / 30
+        const next = prev + delta * playbackSpeed
 
-        setAnimationIndex(prev => {
-          const nextIndex = prev + 1  // 모든 포인트 표시 (부드러운 애니메이션)
+        // 끝 도달 시 일시정지
+        if (next >= maxTime) {
+          setIsReplaying(false)
+          return maxTime
+        }
 
-          // 궤적 끝 도달 시 멈춤
-          if (nextIndex >= result.trajectory.length - 1) {
-            setIsAnimating(false)
-            return result.trajectory.length - 1
-          }
+        // 스트라이크 존 통과 시 일시정지
+        const nextIndex = Math.floor(next * 30)
+        const nextPos = result.trajectory[nextIndex]
+        if (nextPos && nextPos.z <= -18.44) {
+          setIsReplaying(false)
+          setHasReachedPlate(true)
+          return next
+        }
 
-          // 스트라이크존(X축) 통과 체크
-          const nextPos = result.trajectory[nextIndex]
-          if (nextPos && nextPos.z <= -18.44) {
-            setIsAnimating(false)  // 스트라이크존 도달 시 멈춤
-            return nextIndex
-          }
+        return next
+      })
 
-          return nextIndex
-        })
-      }
-
-      if (isAnimating) {
+      if (isReplaying) {
         animationFrameId = requestAnimationFrame(animate)
       }
     }
@@ -113,24 +114,17 @@ export function PitchSimulator() {
         cancelAnimationFrame(animationFrameId)
       }
     }
-  }, [isAnimating, result, settings.targetFps])
+  }, [isReplaying, result, playbackSpeed, setReplayTime, setIsReplaying])
 
-  // 스트라이크 존 통과 체크
-  useEffect(() => {
-    if (!result) return
-    const currentPos = result.trajectory[animationIndex]
-    if (currentPos && currentPos.z <= -18.44 && !hasReachedPlate) {
-      setHasReachedPlate(true)
+  // 시간 → 인덱스 변환
+  const currentIndex = useMemo(() => {
+    if (!result) return 0
+    const idx = Math.floor(replayTime * 30)  // 30fps 가정
+    if (debugConfig.replay) {
+      console.log(`🎬 REPLAY | time: ${replayTime.toFixed(2)}s → index: ${idx} | playing: ${isReplaying}`)
     }
-  }, [animationIndex, result, hasReachedPlate])
-
-  // 리플레이 모드에서 시간 → 인덱스 변환
-  const replayIndex = useMemo(() => {
-    if (!result || !isReplaying) return animationIndex
-    return Math.floor(replayTime * 30)  // 30fps 가정
-  }, [result, isReplaying, replayTime, animationIndex])
-
-  const currentIndex = isReplaying ? replayIndex : animationIndex
+    return idx
+  }, [result, replayTime, isReplaying])
 
   const currentPosition: Vector3 = result && result.trajectory[currentIndex]
     ? result.trajectory[currentIndex]
@@ -140,17 +134,17 @@ export function PitchSimulator() {
     ? result.trajectory.slice(0, currentIndex + 1)
     : []
 
-  const completedTrajectory = result && !isAnimating && !isReplaying
+  // 재생 중지 시 전체 궤적 표시
+  const completedTrajectory = result && !isReplaying && currentIndex >= result.trajectory.length - 1
     ? result.trajectory
     : []
 
-  const handleBack = () => {
-    // TODO: 시나리오 선택 화면으로 이동 (라우터 구현 후)
-    console.log('뒤로가기 클릭')
-  }
-
   const handleHelpClick = () => {
     setIsHelpModalOpen(true)
+  }
+
+  const handleUserClick = () => {
+    setIsAccountModalOpen(true)
   }
 
   // 실험 저장
@@ -163,6 +157,14 @@ export function PitchSimulator() {
   // 실험 불러오기
   const handleLoadExperiment = (loadedParams: PitchParameters) => {
     setParams(loadedParams)
+  }
+
+  // 탭 변경 핸들러
+  const handleTabChange = (tabId: string) => {
+    if (tabId === 'results' && result) {
+      // "결과" 탭 진입 시 현재 위치 유지
+      // replayTime과 isReplaying은 그대로 유지 (아무것도 안 함)
+    }
   }
 
   // 키보드 단축키 핸들러
@@ -178,14 +180,7 @@ export function PitchSimulator() {
         case ' ':
           e.preventDefault()
           if (result) {
-            setIsReplaying(prev => {
-              // 리플레이 시작 시 현재 애니메이션 위치를 replayTime으로 동기화
-              if (!prev) {
-                const currentTime = animationIndex / 30  // 30fps 가정
-                setReplayTime(currentTime)
-              }
-              return !prev
-            })
+            setIsReplaying(prev => !prev) // 재생/일시정지 토글
           }
           break
         case 'r':
@@ -194,8 +189,7 @@ export function PitchSimulator() {
           break
         case 'escape':
           e.preventDefault()
-          setIsAnimating(false)
-          setIsReplaying(false)
+          setIsReplaying(false) // 일시정지
           break
 
         // 카메라 프리셋
@@ -263,7 +257,7 @@ export function PitchSimulator() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [result, isReplaying, isHelpModalOpen, setIsReplaying, setReplayTime, setPlaybackSpeed, setCameraPreset, animationIndex])
+  }, [result, isReplaying, isHelpModalOpen, setIsReplaying, setReplayTime, setPlaybackSpeed, setCameraPreset, currentIndex])
 
   // 우측 패널 탭 구성
   const rightPanelTabs: Tab[] = [
@@ -284,6 +278,7 @@ export function PitchSimulator() {
           {result && result.trajectory.length > 0 && (
             <ReplayControls
               trajectory={result.trajectory}
+              initialTime={replayTime}
               onTimeChange={setReplayTime}
               playbackSpeed={playbackSpeed}
               onSpeedChange={setPlaybackSpeed}
@@ -326,8 +321,8 @@ export function PitchSimulator() {
     <Container>
       <TopNavigationBar
         scenarioName="야구 투구 시뮬레이터"
-        onBack={handleBack}
         onHelpClick={handleHelpClick}
+        onUserClick={handleUserClick}
       />
 
       <MainContent>
@@ -343,7 +338,7 @@ export function PitchSimulator() {
                 startTrigger={pitcherStartTrigger}
                 animationProgress={
                   result && result.trajectory.length > 0
-                    ? Math.min(1.0, animationIndex / (result.trajectory.length * 0.2))
+                    ? Math.min(1.0, currentIndex / (result.trajectory.length * 0.2))
                     : 0
                 }
                 onReleaseFrame={handlePitcherRelease}
@@ -377,12 +372,12 @@ export function PitchSimulator() {
                 {showBall && <Ball3D position={currentPosition} />}
 
                 {/* 진행 중인 궤적 */}
-                {showBall && (isAnimating || isReplaying) && currentTrajectory.length > 1 && (
+                {showBall && (isReplaying || currentIndex < result.trajectory.length - 1) && currentTrajectory.length > 1 && (
                   <TrajectoryLine points={currentTrajectory} />
                 )}
 
                 {/* 완료된 궤적 */}
-                {showBall && !isAnimating && !isReplaying && completedTrajectory.length > 1 && (
+                {showBall && !isReplaying && currentIndex >= result.trajectory.length - 1 && completedTrajectory.length > 1 && (
                   <CompletedTrajectoryLine points={completedTrajectory} />
                 )}
               </>
@@ -391,13 +386,18 @@ export function PitchSimulator() {
         </ViewerSection>
 
         <ControlPanel>
-          <TabContainer tabs={rightPanelTabs} defaultTab="parameters" />
+          <TabContainer tabs={rightPanelTabs} defaultTab="parameters" onTabChange={handleTabChange} />
         </ControlPanel>
       </MainContent>
 
       <HelpModal
         isOpen={isHelpModalOpen}
         onClose={() => setIsHelpModalOpen(false)}
+      />
+
+      <AccountModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
       />
     </Container>
   )
@@ -408,35 +408,82 @@ const Container = styled.div`
   flex-direction: column;
   width: 100%;
   height: 100vh;
-  background: #16213e;
+  background: ${theme.colors.background.primary};
   box-sizing: border-box;
+  overflow: hidden;
 `
 
 const MainContent = styled.div`
   display: flex;
   flex: 1;
-  gap: 20px;
-  padding: 20px;
+  gap: ${theme.spacing.base};
+  padding: ${theme.spacing.base};
   overflow: hidden;
+  min-height: 0; /* Flexbox 스크롤 버그 방지 */
+
+  @media (max-width: 1200px) {
+    flex-direction: column;
+  }
 `
 
 const ViewerSection = styled.div`
   flex: 1;
-  border-radius: 8px;
+  border-radius: ${theme.borderRadius.xl};
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: ${theme.shadows.xl};
   position: relative;
+  border: 1px solid ${theme.colors.border.main};
+  background: ${theme.colors.background.secondary};
+  min-height: 0;
+  min-width: 0;
+
+  /* 글로우 효과 */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: ${theme.borderRadius.xl};
+    padding: 1px;
+    background: ${theme.colors.primary.gradient};
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  @media (max-width: 1200px) {
+    min-height: 400px;
+  }
 `
 
 const ControlPanel = styled.div`
-  width: 400px;
+  width: 420px;
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
+
+  @media (max-width: 1200px) {
+    width: 100%;
+    max-height: 50vh;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-height: 60vh;
+  }
 `
 
 const ResultsTabContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: ${theme.spacing.base};
+  height: 100%;
+  min-height: 0; /* Flexbox 스크롤 허용 */
+
+  /* 각 자식 요소가 필요한 만큼만 공간 차지 */
+  > * {
+    flex-shrink: 0; /* 압축 방지 */
+  }
 `

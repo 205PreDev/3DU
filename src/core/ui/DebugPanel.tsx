@@ -1,20 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSimulation } from '../../contexts/SimulationContext';
+
+// 글로벌 디버그 설정
+export const debugConfig = {
+  replay: false,
+  animation: false,
+  rendering: false,
+};
 
 export const DebugPanel: React.FC = () => {
   const { performanceMetrics } = useSimulation();
+  const [replayLog, setReplayLog] = useState(debugConfig.replay);
+  const [animationLog, setAnimationLog] = useState(debugConfig.animation);
+  const [renderingLog, setRenderingLog] = useState(debugConfig.rendering);
 
-  if (!performanceMetrics) {
-    return (
-      <div className="p-4 text-gray-500">
-        시뮬레이션을 실행하여 성능 지표를 확인하세요.
-      </div>
-    );
-  }
+  const handleToggle = (type: 'replay' | 'animation' | 'rendering') => {
+    if (type === 'replay') {
+      debugConfig.replay = !replayLog;
+      setReplayLog(!replayLog);
+    } else if (type === 'animation') {
+      debugConfig.animation = !animationLog;
+      setAnimationLog(!animationLog);
+    } else if (type === 'rendering') {
+      debugConfig.rendering = !renderingLog;
+      setRenderingLog(!renderingLog);
+    }
+  };
 
   return (
     <div className="p-4 space-y-4">
-      <h3 className="text-lg font-semibold mb-4">성능 지표</h3>
+      <h3 className="text-lg font-semibold mb-4">디버그 설정</h3>
+
+      {/* 로그 토글 */}
+      <div className="bg-gray-800 p-3 rounded space-y-2">
+        <h4 className="font-medium mb-2 text-yellow-400">📋 콘솔 로그</h4>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={replayLog} onChange={() => handleToggle('replay')} />
+          <span className="text-sm">리플레이 (replayTime, replayIndex, isReplaying)</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={animationLog} onChange={() => handleToggle('animation')} />
+          <span className="text-sm">애니메이션 (animationIndex, isAnimating)</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={renderingLog} onChange={() => handleToggle('rendering')} />
+          <span className="text-sm">렌더링 (FPS, 렌더 시간)</span>
+        </label>
+      </div>
+
+      {!performanceMetrics ? (
+        <div className="p-4 text-gray-500">
+          시뮬레이션을 실행하여 성능 지표를 확인하세요.
+        </div>
+      ) : (
+        <>
+          <h3 className="text-lg font-semibold mb-4">성능 지표</h3>
 
       {/* 계산 성능 */}
       <div className="bg-gray-50 p-3 rounded">
@@ -125,6 +165,8 @@ export const DebugPanel: React.FC = () => {
         💡 <strong>참고:</strong> 물리 계산 + 렌더링 시간이 33ms 이하면 30FPS 유지 가능합니다.
         네트워크 통신 시 50~200ms 추가 지연이 발생합니다.
       </div>
+        </>
+      )}
     </div>
   );
 };

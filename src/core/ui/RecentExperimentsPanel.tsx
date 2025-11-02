@@ -195,6 +195,8 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: 100%;
+  min-height: 0; /* Flexbox 스크롤 허용 */
 `
 
 const Header = styled.div`

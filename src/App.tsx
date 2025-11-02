@@ -6,10 +6,13 @@ import { PitchSimulator } from './scenarios/pitch/PitchSimulator'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { GlobalStyles } from './styles/GlobalStyles'
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
+      <GlobalStyles />
+      <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
@@ -30,6 +33,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
+    </>
   )
 }
 

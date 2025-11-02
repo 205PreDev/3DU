@@ -1,5 +1,6 @@
 import { ReactNode, useState } from 'react'
 import styled from 'styled-components'
+import { theme } from '@/styles/theme'
 
 export interface Tab {
   id: string
@@ -10,14 +11,20 @@ export interface Tab {
 interface TabContainerProps {
   tabs: Tab[]
   defaultTab?: string
+  onTabChange?: (tabId: string) => void
 }
 
 /**
  * 탭 컨테이너 컴포넌트
  * 여러 탭 간 전환 UI 제공
  */
-export function TabContainer({ tabs, defaultTab }: TabContainerProps) {
+export function TabContainer({ tabs, defaultTab, onTabChange }: TabContainerProps) {
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id)
+
+  const handleTabClick = (tabId: string) => {
+    setActiveTab(tabId)
+    onTabChange?.(tabId)
+  }
 
   const currentTab = tabs.find(tab => tab.id === activeTab)
 
@@ -28,7 +35,7 @@ export function TabContainer({ tabs, defaultTab }: TabContainerProps) {
           <TabButton
             key={tab.id}
             $active={activeTab === tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabClick(tab.id)}
           >
             {tab.label}
           </TabButton>
@@ -46,58 +53,110 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #2a2a3e;
-  border-radius: 8px;
+  background: ${theme.colors.background.secondary};
+  border-radius: ${theme.borderRadius.lg};
   overflow: hidden;
+  box-shadow: ${theme.shadows.lg};
+  border: 1px solid ${theme.colors.border.light};
 `
 
 const TabHeader = styled.div`
   display: flex;
-  gap: 4px;
-  padding: 8px;
-  background: #1a1a2e;
-  border-bottom: 1px solid #3a3a4e;
+  gap: ${theme.spacing.xs};
+  padding: ${theme.spacing.sm};
+  background: ${theme.colors.background.tertiary};
+  border-bottom: 1px solid ${theme.colors.border.main};
 `
 
 const TabButton = styled.button<{ $active: boolean }>`
+  position: relative;
   flex: 1;
-  padding: 8px 16px;
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
   border: none;
-  border-radius: 4px;
-  background: ${props => props.$active ? '#4caf50' : 'transparent'};
-  color: ${props => props.$active ? '#ffffff' : '#aaa'};
-  font-size: 14px;
-  font-weight: ${props => props.$active ? '600' : '400'};
+  border-radius: ${theme.borderRadius.md};
+  background: ${props => props.$active
+    ? theme.colors.background.elevated
+    : 'transparent'
+  };
+  color: ${props => props.$active
+    ? theme.colors.primary.main
+    : theme.colors.text.secondary
+  };
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${props => props.$active
+    ? theme.typography.fontWeight.semibold
+    : theme.typography.fontWeight.regular
+  };
   cursor: pointer;
-  transition: all 0.2s;
+  transition: ${theme.transitions.normal};
+  overflow: hidden;
+
+  /* Active 상태 글로우 효과 */
+  ${props => props.$active && `
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: ${theme.colors.primary.gradient};
+      opacity: 0.1;
+      border-radius: ${theme.borderRadius.md};
+    }
+  `}
 
   &:hover {
-    background: ${props => props.$active ? '#4caf50' : 'rgba(76, 175, 80, 0.2)'};
-    color: #ffffff;
+    background: ${props => props.$active
+      ? theme.colors.background.elevated
+      : 'rgba(0, 217, 255, 0.1)'
+    };
+    color: ${props => props.$active
+      ? theme.colors.primary.light
+      : theme.colors.text.primary
+    };
   }
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
   }
 `
 
 const TabContent = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  overflow-x: hidden;
+  padding: ${theme.spacing.base};
+  min-height: 0; /* Flexbox 스크롤 버그 방지 */
 
-  /* 스크롤바 스타일 */
-  &::-webkit-scrollbar {
-    width: 8px;
+  /* 스크롤바는 GlobalStyles에서 정의됨 */
+
+  /* 스크롤 페이드 효과 */
+  &::before,
+  &::after {
+    content: '';
+    position: sticky;
+    display: block;
+    height: 20px;
+    margin: 0 -${theme.spacing.base};
+    pointer-events: none;
+    z-index: 10;
   }
 
-  &::-webkit-scrollbar-track {
-    background: #1a1a2e;
-    border-radius: 4px;
+  &::before {
+    top: 0;
+    background: linear-gradient(
+      to bottom,
+      ${theme.colors.background.secondary},
+      transparent
+    );
+    margin-bottom: -20px;
   }
 
-  &::-webkit-scrollbar-thumb {
-    background: #4caf50;
-    border-radius: 4px;
+  &::after {
+    bottom: 0;
+    background: linear-gradient(
+      to top,
+      ${theme.colors.background.secondary},
+      transparent
+    );
+    margin-top: -20px;
   }
 `
