@@ -135,40 +135,74 @@ src/
 
 2.3.2 주요 소스 코드 목록
 -------------------------------------------------------
-파일 경로                                   설명              작성자
+파일 이름                                  설명              작성자
 -------------------------------------------------------
 [프론트엔드 - Core 시스템]
-src/core/physics/simulator.ts       # 물리 시뮬레이션 핵심 로직      ㅇㅇㅎ
-src/contexts/SimulationContext.tsx    # 전역 상태 관리 Context         ㄱㅌㅎ
+simulator.ts       물리 시뮬레이션 핵심 로직      ㅇㅇㅎ
+SimulationContext.tsx     전역 상태 관리 Context         ㄱㅌㅎ
+-------------------------------------------------------
+파일 이름                                  설명              작성자
+-------------------------------------------------------
+[프론트엔드 - Core 시스템]
+simulator.ts       물리 시뮬레이션 핵심 로직      ㅇㅇㅎ
+SimulationContext.tsx     전역 상태 관리 Context         ㄱㅌㅎ
 
 [프론트엔드 - 물리 엔진]
-src/core/physics/integrator.ts      # 수치 적분 (Euler, RK4)         ㅇㅇㅎ
-src/core/physics/forces.ts          # 힘 계산 (중력, 항력, 마그누스) 상세 설명 완료 ㅇㅇㅎ
+integrator.ts       수치 적분 (Euler, RK4)         ㅇㅇㅎ
+forces.ts           힘 계산 (중력, 항력, 마그누스) ㅇㅇㅎ
 
 [프론트엔드 - 3D 렌더링]
-src/core/renderer/Scene3D.tsx       # Three.js 캔버스 및 기본 설정 상세 설명 완료 ㄱㅌㅎ
-src/core/renderer/CameraController.tsx # 카메라 제어 로직 상세 설명 완료 ㄱㅌㅎ
-src/scenarios/pitch/Ball3D.tsx        # 야구공 3D 모델 및 궤적 렌더링 상세 설명 완료 ㄱㅌㅎ
+Scene3D.tsx        Three.js 캔버스 및 기본 설정  ㄱㅌㅎ
+CameraController.tsx  카메라 제어 로직 ㄱㅌㅎ
+Ball3D.tsx         야구공 3D 모델 및 궤적 렌더링 ㄱㅌㅎ
 
 [프론트엔드 - UI 컴포넌트]
-src/core/ui/TabContainer.tsx          # 재사용 가능한 탭 컨테이너 상세 설명 완료 ㄱㅌㅎ
-src/core/ui/ReplayControls.tsx      # 리플레이 제어 UI 상세 설명 완료 ㄱㅌㅎ
-src/core/ui/ComparisonPanel.tsx       # 비교 모드 UI 상세 설명 완료 ㅇㅇㅎ
+TabContainer.tsx           재사용 가능한 탭 컨테이너 상세 설명 완료 ㄱㅌㅎ
+ReplayControls.tsx       리플레이 제어 UI ㄱㅌㅎ
+ComparisonPanel.tsx        비교 모드 UI ㅇㅇㅎ
 
 [프론트엔드 - 시나리오]
-src/scenarios/pitch/PitchSimulator.tsx # 시뮬레이터 메인 컴포넌트 상세 설명 완료       ㅇㅇㅎ
-src/scenarios/pitch/PitchInputPanel.tsx # 투구 파라미터 입력 UI 상세 설명 완료 ㄱㅌㅎ
+PitchSimulator.tsx  시뮬레이터 메인 컴포넌트 상세 설명 완료       ㅇㅇㅎ
+PitchInputPanel.tsx  투구 파라미터 입력 UI 상세 설명 완료 ㄱㅌㅎ
 
 [프론트엔드 - 페이지]
-src/pages/LoginPage.tsx             # 로그인 페이지 상세 설명 완료 ㄱㅌㅎ
-src/pages/SignupPage.tsx            # 회원가입 페이지 상세 설명 완료 ㄱㅌㅎ
+LoginPage.tsx              로그인 페이지 상세 설명 완료 ㄱㅌㅎ
+SignupPage.tsx             회원가입 페이지 상세 설명 완료 ㄱㅌㅎ
 
 [프론트엔드 - 유틸리티]
-src/utils/supabaseExperiments.ts    # Supabase 실험 데이터 연동 상세 설명 완료      ㅇㅇㅎ
+supabaseExperiments.ts     Supabase 실험 데이터 연동 상세 설명 완료      ㅇㅇㅎ
 
 [설정 파일]
-vite.config.ts                      # Vite 빌드 설정 상세 설명 완료               ㄱㅌㅎ
-tsconfig.json                       # TypeScript 설정 상세 설명 완료              ㅇㅇㅎ
+vite.config.ts                       Vite 빌드 설정 상세 설명 완료               ㄱㅌㅎ
+tsconfig.json                        TypeScript 설정 상세 설명 완료              ㅇㅇㅎ
+[프론트엔드 - 물리 엔진]
+integrator.ts       수치 적분 (Euler, RK4)         ㅇㅇㅎ
+forces.ts           힘 계산 (중력, 항력, 마그누스) ㅇㅇㅎ
+
+[프론트엔드 - 3D 렌더링]
+Scene3D.tsx        Three.js 캔버스 및 기본 설정  ㄱㅌㅎ
+CameraController.tsx  카메라 제어 로직 ㄱㅌㅎ
+Ball3D.tsx         야구공 3D 모델 및 궤적 렌더링 ㄱㅌㅎ
+
+[프론트엔드 - UI 컴포넌트]
+TabContainer.tsx           재사용 가능한 탭 컨테이너 상세 설명 완료 ㄱㅌㅎ
+ReplayControls.tsx       리플레이 제어 UI ㄱㅌㅎ
+ComparisonPanel.tsx        비교 모드 UI ㅇㅇㅎ
+
+[프론트엔드 - 시나리오]
+PitchSimulator.tsx  시뮬레이터 메인 컴포넌트 상세 설명 완료       ㅇㅇㅎ
+PitchInputPanel.tsx  투구 파라미터 입력 UI 상세 설명 완료 ㄱㅌㅎ
+
+[프론트엔드 - 페이지]
+LoginPage.tsx              로그인 페이지 상세 설명 완료 ㄱㅌㅎ
+SignupPage.tsx             회원가입 페이지 상세 설명 완료 ㄱㅌㅎ
+
+[프론트엔드 - 유틸리티]
+supabaseExperiments.ts     Supabase 실험 데이터 연동 상세 설명 완료      ㅇㅇㅎ
+
+[설정 파일]
+vite.config.ts                       Vite 빌드 설정 상세 설명 완료               ㄱㅌㅎ
+tsconfig.json                        TypeScript 설정 상세 설명 완료              ㅇㅇㅎ
 -------------------------------------------------------
 
 2.3.3 주요 소스 코드 상세
