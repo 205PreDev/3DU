@@ -16,18 +16,19 @@ export interface ExperimentData {
   updated_at: string
 }
 
-export interface MinigameScore {
-  id: string
-  user_id: string
-  game_type: string
-  score: {
-    value: number
-    rank: string
-    attempts: number
-    metadata?: Record<string, any>
-  }
-  created_at: string
-}
+// ⚠️ DEPRECATED: 미니게임 기능 보류 (2025-11-05)
+// export interface MinigameScore {
+//   id: string
+//   user_id: string
+//   game_type: string
+//   score: {
+//     value: number
+//     rank: string
+//     attempts: number
+//     metadata?: Record<string, any>
+//   }
+//   created_at: string
+// }
 
 // ==================== Experiments API ====================
 
@@ -109,68 +110,70 @@ export const experimentsApi = {
   },
 }
 
-// ==================== Minigame Scores API ====================
+// ==================== Minigame Scores API (DEPRECATED) ====================
+// ⚠️ 미니게임 및 리더보드 기능 보류 (2025-11-05)
+// 향후 필요 시 재활성화 가능
 
-export const minigameApi = {
-  /**
-   * 미니게임 기록 저장
-   */
-  async create(
-    gameType: string,
-    score: { value: number; rank: string; attempts: number; metadata?: Record<string, any> }
-  ): Promise<MinigameScore> {
-    const { data: userData } = await supabase.auth.getUser()
-    if (!userData.user) throw new Error('로그인이 필요합니다.')
+// export const minigameApi = {
+//   /**
+//    * 미니게임 기록 저장
+//    */
+//   async create(
+//     gameType: string,
+//     score: { value: number; rank: string; attempts: number; metadata?: Record<string, any> }
+//   ): Promise<MinigameScore> {
+//     const { data: userData } = await supabase.auth.getUser()
+//     if (!userData.user) throw new Error('로그인이 필요합니다.')
 
-    const { data, error } = await supabase
-      .from('minigame_scores')
-      .insert({
-        user_id: userData.user.id,
-        game_type: gameType,
-        score,
-      })
-      .select()
-      .single()
+//     const { data, error } = await supabase
+//       .from('minigame_scores')
+//       .insert({
+//         user_id: userData.user.id,
+//         game_type: gameType,
+//         score,
+//       })
+//       .select()
+//       .single()
 
-    if (error) throw error
-    return data
-  },
+//     if (error) throw error
+//     return data
+//   },
 
-  /**
-   * 리더보드 가져오기
-   */
-  async leaderboard(gameType: string, limit = 10) {
-    const { data, error } = await supabase
-      .from('minigame_scores')
-      .select(`
-        id,
-        score,
-        created_at,
-        profiles (username)
-      `)
-      .eq('game_type', gameType)
-      .order('score->value', { ascending: false })
-      .limit(limit)
+//   /**
+//    * 리더보드 가져오기
+//    */
+//   async leaderboard(gameType: string, limit = 10) {
+//     const { data, error } = await supabase
+//       .from('minigame_scores')
+//       .select(`
+//         id,
+//         score,
+//         created_at,
+//         profiles (username)
+//       `)
+//       .eq('game_type', gameType)
+//       .order('score->value', { ascending: false })
+//       .limit(limit)
 
-    if (error) throw error
-    return data || []
-  },
+//     if (error) throw error
+//     return data || []
+//   },
 
-  /**
-   * 내 기록 가져오기
-   */
-  async myScores(gameType: string, limit = 10): Promise<MinigameScore[]> {
-    const { data, error } = await supabase
-      .from('minigame_scores')
-      .select('*')
-      .eq('game_type', gameType)
-      .order('created_at', { ascending: false })
-      .limit(limit)
+//   /**
+//    * 내 기록 가져오기
+//    */
+//   async myScores(gameType: string, limit = 10): Promise<MinigameScore[]> {
+//     const { data, error } = await supabase
+//       .from('minigame_scores')
+//       .select('*')
+//       .eq('game_type', gameType)
+//       .order('created_at', { ascending: false })
+//       .limit(limit)
 
-    if (error) throw error
-    return data || []
-  },
-}
+//     if (error) throw error
+//     return data || []
+//   },
+// }
 
 // ==================== LocalStorage Migration ====================
 

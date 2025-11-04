@@ -48,9 +48,19 @@ export interface SimulationState {
   time: number
 }
 
+// 궤적 포인트 (위치 + 힘 벡터)
+export interface TrajectoryPoint {
+  position: Vector3
+  forces?: {
+    gravity: Vector3
+    drag: Vector3
+    magnus: Vector3
+  }
+}
+
 // 시뮬레이션 결과
 export interface SimulationResult {
-  trajectory: Vector3[]     // 궤적 포인트 배열
+  trajectory: TrajectoryPoint[]  // 궤적 포인트 배열 (위치 + 힘 벡터)
   flightTime: number        // 비행 시간 (초)
   maxHeight: number         // 최고 높이 (m)
   finalPosition: Vector3    // 최종 위치

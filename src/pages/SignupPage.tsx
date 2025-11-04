@@ -6,13 +6,10 @@ import { theme } from '@/styles/theme'
 import { Button } from '@/components/common/Button'
 import { Input, Label, FormGroup, ErrorMessage } from '@/components/common/Input'
 import { IoRocketOutline } from 'react-icons/io5'
-import { HiUserCircle, HiAcademicCap } from 'react-icons/hi2'
-
 export const SignupPage: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
-  const [role, setRole] = useState<'student' | 'teacher'>('student')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -29,7 +26,6 @@ export const SignupPage: React.FC = () => {
         options: {
           data: {
             username,
-            role,
           },
         },
       })
@@ -108,33 +104,6 @@ export const SignupPage: React.FC = () => {
                 placeholder="최소 6자"
                 autoComplete="new-password"
               />
-            </FormGroup>
-
-            <FormGroup>
-              <Label>역할</Label>
-              <RoleSelector>
-                <RoleOption
-                  $active={role === 'student'}
-                  onClick={() => setRole('student')}
-                  type="button"
-                >
-                  <RoleIcon>
-                    <HiUserCircle />
-                  </RoleIcon>
-                  <RoleLabel>학생</RoleLabel>
-                </RoleOption>
-
-                <RoleOption
-                  $active={role === 'teacher'}
-                  onClick={() => setRole('teacher')}
-                  type="button"
-                >
-                  <RoleIcon>
-                    <HiAcademicCap />
-                  </RoleIcon>
-                  <RoleLabel>교사</RoleLabel>
-                </RoleOption>
-              </RoleSelector>
             </FormGroup>
 
             {error && (
@@ -311,73 +280,6 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: ${theme.spacing.base};
-`
-
-const RoleSelector = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: ${theme.spacing.md};
-`
-
-const RoleOption = styled.button<{ $active: boolean }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.base};
-  background: ${props =>
-    props.$active
-      ? theme.colors.background.elevated
-      : theme.colors.background.tertiary
-  };
-  border: 1.5px solid ${props =>
-    props.$active
-      ? theme.colors.primary.main
-      : theme.colors.border.main
-  };
-  border-radius: ${theme.borderRadius.md};
-  cursor: pointer;
-  transition: all ${theme.transitions.normal};
-  position: relative;
-  overflow: hidden;
-
-  ${props => props.$active && `
-    box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
-  `}
-
-  &:hover {
-    border-color: ${props =>
-      props.$active
-        ? theme.colors.primary.light
-        : theme.colors.border.strong
-    };
-    background: ${props =>
-      props.$active
-        ? theme.colors.background.elevated
-        : theme.colors.background.tertiary
-    };
-    transform: translateY(-2px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-`
-
-const RoleIcon = styled.div`
-  font-size: 32px;
-  color: ${theme.colors.primary.main};
-  filter: drop-shadow(0 2px 8px rgba(0, 217, 255, 0.3));
-
-  svg {
-    display: block;
-  }
-`
-
-const RoleLabel = styled.span`
-  font-size: ${theme.typography.fontSize.sm};
-  font-weight: ${theme.typography.fontWeight.medium};
-  color: ${theme.colors.text.primary};
 `
 
 const Divider = styled.div`

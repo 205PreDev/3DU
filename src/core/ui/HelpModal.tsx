@@ -105,15 +105,15 @@ function KeyboardShortcuts() {
         <GroupTitle>시뮬레이션</GroupTitle>
         <ShortcutItem>
           <Key>Space</Key>
-          <ShortcutDesc>시작 / 정지</ShortcutDesc>
+          <ShortcutDesc>재생 / 일시정지</ShortcutDesc>
         </ShortcutItem>
         <ShortcutItem>
           <Key>R</Key>
-          <ShortcutDesc>리셋</ShortcutDesc>
+          <ShortcutDesc>처음으로 되돌리기</ShortcutDesc>
         </ShortcutItem>
         <ShortcutItem>
           <Key>Esc</Key>
-          <ShortcutDesc>중지</ShortcutDesc>
+          <ShortcutDesc>일시정지</ShortcutDesc>
         </ShortcutItem>
       </ShortcutGroup>
 
@@ -146,17 +146,17 @@ function KeyboardShortcuts() {
         <ShortcutItem>
           <Key>←</Key>
           <Key>→</Key>
-          <ShortcutDesc>프레임 이동</ShortcutDesc>
+          <ShortcutDesc>0.1초 단위 이동 (일시정지 중에도 작동)</ShortcutDesc>
         </ShortcutItem>
         <ShortcutItem>
           <Key>[</Key>
           <Key>]</Key>
-          <ShortcutDesc>속도 조절</ShortcutDesc>
+          <ShortcutDesc>재생 속도 조절 (0.25x ~ 2x)</ShortcutDesc>
         </ShortcutItem>
         <ShortcutItem>
           <Key>,</Key>
           <Key>.</Key>
-          <ShortcutDesc>0.1초 단위 이동</ShortcutDesc>
+          <ShortcutDesc>재생 속도 0.5x / 1x로 설정</ShortcutDesc>
         </ShortcutItem>
       </ShortcutGroup>
     </Section>

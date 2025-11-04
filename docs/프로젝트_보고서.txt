@@ -1,0 +1,549 @@
+ 교육용 3D 물리 시뮬레이터 - 프로젝트 보고서
+
+  1. 작품 개요
+
+  1.1 작품 개요
+
+  - 프로젝트명: 교육용 3D 물리 시뮬레이터 (야구 투구 시뮬레이터)
+  - 개발 기간: 2025-09 ~ 2025-11 (3개월)
+  - 프로젝트 요약
+    - 확장 가능한 웹 기반 3D 물리 시뮬레이터
+    - 1차 모듈: 야구 투구 시뮬레이터 (중력, 항력, 마그누스 효과)
+    - 물리 법칙의 직관적 시각화 및 사용자 참여 유도
+
+  1.2 작품 선정 배경
+
+  - 교육적 필요성
+    - 물리 법칙(포물선, 마그누스 효과) 직관적 이해
+    - 추상적 개념의 시각화 필요성
+  - 기존 학습 방법의 한계
+    - 이론 중심 수업의 낮은 흥미도
+    - 실험 장비 구축의 비용/공간 제약
+  - 프로젝트 목표
+    - 교육자: 수업 자료 활용, 흥미 유발
+    - 학습자: 실시간 파라미터 조정 실험
+    - 물리 시뮬레이션 관심 사용자
+
+  1.3 유사 시스템 분석 (작성 보류)
+
+  - 기존 물리 시뮬레이션 도구
+    - PhET Interactive Simulations (콜로라도대)
+    - Physics Classroom 웹 시뮬레이터
+  - 상용 야구 분석 도구
+    - Rapsodo Baseball
+    - TrackMan Baseball
+  - 차별화 포인트
+    - 확장 가능한 아키텍처 (80% 코드 재사용)
+    - 저사양 최적화 (Intel 9세대 CPU급 30fps)
+    - 힘 벡터 시각화 (3D 화살표)
+    - 비교 모드 (2개 실험 동시 분석)
+    - 블렌더 3D 모델 (투수 애니메이션 동기화)
+
+  1.4 구현 범위 및 목표
+
+  - 구현 범위 (In-Scope)
+    - 야구 투구 시나리오 (1차 모듈)
+    - 15개 파라미터 직접 입력 UI
+    - 3D 시각화 (Three.js, WebGL 2.0)
+    - 리플레이 + 슬로우 모션
+    - 사용자 인증 (Supabase Auth)
+    - 실험 저장/비교 모드
+    - 힘 벡터 시각화
+  - 제외 범위 (Out-of-Scope)
+    - 타격 시뮬레이션
+    - 실시간 멀티플레이어
+    - 모바일 앱 (반응형 웹만 지원)
+    - 관리자 대시보드
+  - 성능 목표
+    - 저사양 PC 30fps 이상
+    - 초기 로딩 3초 미만
+    - 시뮬레이션 계산 100ms 미만
+    - 확장 시 80% 코드 재사용
+
+  1.5 개발 환경
+
+  - 프론트엔드
+    - 언어: TypeScript 5.2.2
+    - 프레임워크: React 18.2.0, Three.js 0.158.0
+    - 빌드: Vite 5.0.0
+    - 상태 관리: React Context API
+    - 스타일링: styled-components 6.1.1
+  - 백엔드
+    - BaaS: Supabase (PostgreSQL 16.x)
+    - 인증: Supabase Auth (JWT 기반)
+    - RLS: Row Level Security 정책
+  - 협업 도구
+    - Git/GitHub (Git-flow 전략)
+    - VS Code
+
+  ---
+  2. 관련 기술
+
+  2.1 Three.js 및 WebGL
+
+  - Three.js 개요
+    - 3D 그래픽 라이브러리 (WebGL 래퍼)
+    - @react-three/fiber (React 통합)
+    - @react-three/drei (유틸리티 컴포넌트)
+  - WebGL 2.0 렌더링 파이프라인
+    - Canvas 설정 (FOV, 카메라 위치)
+    - 조명 시스템 (Ambient, Directional, Point)
+    - 그림자 렌더링 (1024x1024 shadow map)
+  - FBX 모델 로더
+    - three-stdlib FBXLoader
+    - 블렌더 투수 3D 모델 (846KB, 280 폴리곤)
+    - AnimationMixer 동기화
+
+  2.2 물리 엔진 수치 해석
+
+  - 수치 적분 방법
+    - Euler Method (1차, 빠름)
+    - Runge-Kutta 4차 (RK4, 정확함)
+  - 물리력 계산
+    - 중력: F = m × g × [0, -1, 0]
+    - 항력: F_drag = -0.5 × ρ × C_d × A × |v|² × v̂
+    - 마그누스 효과: F_magnus = 0.5 × C_L × ρ × A × |v|² × (ω × v̂)
+  - 공기 밀도 자동 계산
+    - 이상 기체 법칙 기반
+    - 온도, 기압, 습도 입력 → ρ 계산
+    - Magnus 공식 (포화 수증기압)
+
+  2.3 React 상태 관리
+
+  - React Context API
+    - SimulationContext (파라미터, 결과, 리플레이)
+    - ComparisonContext (비교 모드)
+    - GraphicsContext (그래픽 설정)
+  - Context Factory 패턴
+    - 시나리오별 독립 Context 생성
+    - 확장 가능한 아키텍처
+
+  2.4 Supabase Auth & RLS
+
+  - Supabase Authentication
+    - 이메일/비밀번호 인증
+    - JWT 기반 세션 관리
+    - Auth 트리거 (프로필 자동 생성)
+  - Row Level Security (RLS)
+    - PostgreSQL 정책 기반 보안
+    - uid() = user_id 조건
+    - 백엔드 없이 데이터 격리
+  - Realtime API
+    - 실시간 데이터 동기화 (향후 협업 게임용)
+
+  2.5 TypeScript 타입 시스템
+
+  - Generic 타입 시스템
+    - BaseSimulator<TParams, TResult>
+    - Template Method 패턴
+  - 확장 가능한 아키텍처
+    - 신규 시나리오 추가 시 80% 코드 재사용
+    - 모듈식 설계 (core/, scenarios/)
+
+  ---
+  3. 구현 내용
+
+  3.1 시스템 아키텍처
+
+  3.1.1 전체 시스템 구조도
+
+  (다이어그램: 시스템 아키텍처)
+
+  (설명)
+  - 3-Tier 아키텍처: 프레젠테이션 계층(React), 비즈니스 로직 계층(Physics Engine), 데이터 계층(Supabase)으로 구성됩니다.
+  - 클라이언트 중심 계산: 물리 계산 및 렌더링 등 핵심 로직은 모두 클라이언트 사이드에서 처리하여 서버 부하를 최소화합니다.
+  - 서버리스 백엔드: Supabase를 BaaS(Backend as a Service)로 활용하여 별도의 백엔드 서버 없이 인증, 데이터베이스, 스토리지 기능을 구현합니다.
+
+  3.1.2 데이터 흐름도 (Data Flow Diagram)
+
+  (다이어그램: 데이터 흐름도)
+  (설명)
+  - 사용자의 파라미터 입력은 SimulationContext를 통해 전역 상태로 관리됩니다.
+  - 물리 엔진은 이 상태를 기반으로 궤적 데이터를 생성하고, 3D 렌더러와 결과 분석 패널로 전달합니다.
+  - 사용자는 실험 결과를 Supabase에 저장하거나, 저장된 실험들을 비교 모드에서 분석할 수 있습니다.
+
+  3.1.3 디렉토리 구조 및 아키텍처
+
+  src/
+  ├── core/         # 재사용 가능한 공통 모듈
+  │   ├── physics/  # 물리 엔진 (integrator, forces, simulator)
+  │   ├── renderer/ # 3D 렌더링 (Scene3D, CameraController)
+  │   └── ui/       # 핵심 UI (ResultPanel, ReplayControls)
+  ├── scenarios/    # 시나리오별 구현
+  │   └── pitch/    # 야구 투구 (PitchSimulator, Ball3D)
+  ├── components/   # 공통 UI 컴포넌트
+  │   └── common/   # Button, Input, Card, Section, FormField
+  ├── styles/       # 디자인 시스템
+  │   ├── theme.ts  # 색상, 타이포그래피, 애니메이션
+  │   └── GlobalStyles.tsx
+  ├── contexts/     # 전역 상태 관리
+  ├── lib/          # Supabase 설정
+  ├── pages/        # 로그인, 회원가입
+  ├── types/        # 전역 타입 정의
+  └── utils/        # 유틸리티 함수
+
+  3.1.4 데이터베이스 스키마 (ERD)
+
+  (다이어그램: 데이터베이스 ERD)
+
+  (설명)
+  - 테이블 목록
+    - profiles: 사용자 프로필 (id, username, role)
+    - experiments: 실험 데이터 (id, user_id, params JSONB, result JSONB)
+    - minigame_scores: 미니게임 점수 (id, user_id, game_type, score)
+  - RLS 정책
+    - 모든 테이블 RLS 활성화
+    - 사용자는 자신의 데이터만 접근 가능 (uid() = user_id)
+
+  ---
+  3.2 물리 엔진 (Domain Layer)
+
+  3.2.1 물리 계산 흐름도 (Flow Chart)
+
+  (다이어그램: 물리 계산 플로우차트)
+  (설명)
+  - 초기 상태 설정 → 반복 루프 → 힘 계산 (중력+항력+마그누스) → 수치 적분 (Euler/RK4) → 위치/속도 업데이트 → 종료 조건 (플레이트 도달/지면 충돌)
+
+  3.2.2 핵심 알고리즘 구현
+
+  - 중력 계산 (forces.ts)
+  F = m × g × [0, -1, 0]
+  - 항력 계산 (forces.ts)
+  F_drag = -0.5 × ρ × C_d × A × |v|² × v̂
+  - 마그누스 효과 (forces.ts)
+  F_magnus = 0.5 × C_L × ρ × A × |v|² × (ω × v̂)
+  - 수치 적분 비교 (integrator.ts)
+    - Euler Method: 빠르지만 오차 누적
+    - RK4 Method: 정확하지만 4배 계산량
+
+  3.2.3 릴리스 포인트 자동 보정
+
+  - 문제: 우완/좌완 투수 릴리스 포인트(X≠0)에서 공이 홈플레이트 중심을 향하지 않음
+  - 해결: simulator.ts:53-75
+    - 자연스러운 각도 자동 계산 (atan2(deltaX, -deltaZ))
+    - 사용자 입력 horizontal angle을 자연 각도에 더함
+  - 스트라이크 존 접촉 판정
+    - 공 반지름 고려 (|x| ≤ 0.22 + ballRadius)
+    - 경계 걸치면 스트라이크
+
+  ---
+  3.3 3D 렌더링 시스템
+
+  3.3.1 Scene3D 구조
+
+  - Canvas 설정
+    - 카메라: position=[5, 3, 15], FOV=50
+    - 조명: Ambient + Directional + Point Light
+    - 그림자: 1024x1024 shadow map
+  - OrbitControls
+    - 자유 시점 모드에서만 활성화
+    - 고정 프리셋에서 비활성화 (카메라 떨림 방지)
+
+  3.3.2 컴포넌트 계층도 (Component Tree)
+
+  (다이어그램: 컴포넌트 트리)
+  (설명)
+  - Scene3D → [Ball3D, TrajectoryLine, Field, Grid, Pitcher3D, ForceVectors3D, CameraController]
+
+  3.3.3 블렌더 투수 3D 모델 통합
+
+  - FBX 모델 로드
+    - 파일: public/models/pitcher.fbx (846KB, 280 폴리곤)
+    - FBXLoader (three-stdlib)
+    - scale(0.01, 0.01, 0.01), rotation.y = π
+  - 트리거 기반 애니메이션 시스템
+    - startTrigger prop (카운터 증가 시 애니메이션 시작)
+    - AnimationMixer, AnimationAction
+    - LoopOnce 모드, clampWhenFinished
+  - 타이밍 동기화
+    - 119프레임 투구 애니메이션 (30fps, 3.97초)
+    - 48프레임 릴리스: 공 생성 및 물리 계산 시작
+    - 119프레임 종료: 1프레임 대기 자세로 자동 복귀
+  - 좌완/우완 미러링
+    - 릴리스 포인트 X좌표 기준 (x < 0 → 좌완)
+    - Y축 미러링 (scale={[isLeftHanded ? -1 : 1, 1, 1]})
+
+  3.3.4 힘 벡터 시각화 (ForceVectors3D)
+
+  - 기능
+    - 중력(파란색), 항력(빨간색), 마그누스(녹색) 화살표
+    - Three.js ArrowHelper 사용
+    - 리플레이 타임라인 연동 (실시간 업데이트)
+  - 비교 모드 지원
+    - 2개 실험의 힘 벡터 독립 표시
+    - ComparisonForceVectorTable (X/Y/Z 성분, 크기, 차이값)
+  - 토글 기능
+    - 결과 패널/비교 패널 체크박스
+
+  3.3.5 성능 최적화 전략
+
+  - 폴리곤 수 감소: 투수 모델 280개, 공 16-32개 (조정 가능)
+  - React.memo 적용: Ball3D, TrajectoryLine
+  - requestAnimationFrame: 60fps 타겟
+  - 그래픽 설정 시스템
+    - 목표 FPS (30-60)
+    - 픽셀 밀도/DPR (1.0-2.0x)
+    - 안티앨리어싱 ON/OFF
+    - 공 품질 (폴리곤 수)
+    - 궤적 정밀도 (50-200점)
+
+  ---
+  3.4 사용자 인터페이스 (UI/UX)
+
+  3.4.1 UI 디자인 시스템
+
+  - 디자인 토큰 (theme.ts)
+    - 색상: Primary #00D9FF (시안), Secondary #7B2FFF (보라)
+    - 배경 계층 4단계 (primary → elevated)
+    - 타이포그래피: Inter (본문), JetBrains Mono (코드/숫자)
+    - 애니메이션: Fast (0.15s), Normal (0.2s), Slow (0.3s)
+  - 공통 컴포넌트 시스템 (components/common/)
+    - Button: 5가지 variant, 3가지 size
+    - Input: 테마 통합, 폼 그룹, 에러 메시지
+    - Card: 기본/인터랙티브, 그리드/리스트
+    - Section: 섹션 레이아웃, 접기 기능
+    - FormField: 폼 필드, 슬라이더
+  - 아이콘 라이브러리: react-icons (이모지 완전 교체)
+
+  3.4.2 로그인/회원가입 UI
+
+  - 디자인 요소
+    - 애니메이션 배경: 떠다니는 Orb 3개 (20초 순환)
+    - 그라디언트 타이틀: Primary 색상
+    - 글래스모피즘: Blur 백드롭 + 반투명 카드
+  - 역할 선택: 대형 아이콘 버튼 (학생/교사)
+  - 기능 소개: 3개 아이콘 (실시간 계산, 3D 시각화, 데이터 분석)
+
+  3.4.3 시뮬레이터 메인 화면
+
+  - 레이아웃
+    - 좌측: 3D 뷰어 (70%, 그라디언트 테두리 글로우)
+    - 우측: 제어 패널 (420px, 4개 탭)
+  - 4개 탭 구조 (TabContainer.tsx)
+    a. 파라미터: 3단 구조 입력 (공 물성/투구 조건/환경 변수)
+    b. 결과: 카메라 프리셋, 리플레이, 판정, 힘 벡터
+    c. 최근 실험: LocalStorage 기반 (최대 10개)
+    d. 비교: 2개 실험 선택 + 비교 표
+  - 반응형 레이아웃: 1200px, 768px breakpoint
+
+  3.4.4 카메라 프리셋 및 리플레이 컨트롤
+
+  - 카메라 프리셋 버튼 (CameraPresetButtons.tsx)
+    - 3x2 그리드: 포수/측면/투수/추적/자유/클로즈업
+    - 활성 상태: Primary 글로우
+    - 호버 효과: translateY + 그라디언트
+    - 아이콘: 야구 테마 (GiBaseballGlove, GiBaseballBat)
+  - 리플레이 컨트롤 (ReplayControls.tsx)
+    - 타임라인 슬라이더: 그라디언트 진행 바, 글로우 Thumb (18px)
+    - 재생 버튼: 원형 48px, 글로우 링
+    - 속도 버튼: 0.25x ~ 2x, Monospace 폰트
+
+  3.4.5 스크롤 시스템 개선
+
+  - 문제: 콘텐츠 많아지면 UI 깨짐
+  - 해결
+    - min-height: 0 (Flexbox 스크롤 버그)
+    - overflow-y: auto
+    - 스크롤 페이드 효과 (상단/하단 그라디언트)
+    - 커스텀 스크롤바 (Primary 색상)
+
+  ---
+  3.5 비교 모드
+
+  3.5.1 비교 모드 시퀀스 다이어그램
+
+  (다이어그램: 시뮬레이션 실행 시퀀스 다이어그램)
+  - 사용자 → ComparisonPanel (2개 실험 선택) → ComparisonContext → PitchSimulator (2개 TrajectoryLine 렌더링) → ComparisonResultTable (비교 표)
+
+  3.5.2 비교 UI 구현
+
+  - ComparisonPanel.tsx
+    - 2개 실험 선택 드롭다운
+    - 실험 미리보기 (속도, 회전, 판정)
+  - 궤적 색상 구분
+    - 실험 A: 파란색 (#4444ff)
+    - 실험 B: 빨간색 (#ff4444)
+  - ComparisonResultTable.tsx
+    - 6개 항목 비교: 판정, 비행시간, 최고높이, 수평변화, 수직낙차, 통과높이
+    - 차이값 표시 (오렌지색)
+  - ComparisonForceVectorTable.tsx
+    - 힘 벡터 X/Y/Z 성분 비교
+    - 크기 및 차이값(A-B)
+
+  3.5.3 데이터 흐름
+
+  - ComparisonContext 상태 관리 (experimentA, experimentB, isComparing)
+  - PitchSimulator 비교 모드 감지
+  - 2개 TrajectoryLine + ForceVectors3D 동시 렌더링
+
+  ---
+  3.6 인증 및 데이터 저장 (Backend)
+
+  3.6.1 Supabase Auth 흐름도
+
+  (다이어그램: 사용자 인증 시퀀스)
+  (설명)
+  - 회원가입 → Auth 트리거 → profiles 테이블 자동 생성 → 로그인 → JWT 발급 → /pitch 접근 → RLS로 데이터 접근 제어
+
+  3.6.2 API 엔드포인트 구조
+
+  - Supabase 클라이언트 API
+    - supabase.auth.signUp() (회원가입)
+    - supabase.auth.signInWithPassword() (로그인)
+    - supabase.from('experiments').select() (실험 목록)
+    - supabase.from('experiments').insert() (실험 저장)
+    - supabase.from('experiments').delete() (실험 삭제)
+  - 파일: src/lib/supabaseApi.ts, src/utils/supabaseExperiments.ts
+
+  3.6.3 데이터 마이그레이션
+
+  - LocalStorage → Supabase 자동 마이그레이션
+  - 로그인 시 일회성 업로드 (기존 로컬 데이터)
+
+  ---
+  3.7 핵심 기능 구현 및 문제 해결
+
+  3.7.1 물리 엔진 고도화
+
+  - 문제: Euler 적분 오차 누적
+  - 해결: RK4 적분 도입 (정확도 향상)
+  - 회전축 설명 수정 (Breaking Change)
+    - X축: 백스핀/탑스핀 (떠오름/낙차)
+    - Y축: 좌우 변화 (1루/3루 방향)
+    - Z축: 총알회전 (궤적 변화 거의 없음)
+
+  3.7.2 렌더링 최적화
+
+  - 문제: 저사양 PC FPS 저하
+  - 해결
+    - React.memo, useMemo (리렌더링 최소화)
+    - 3D 모델 폴리곤 최적화
+    - 그래픽 설정 패널 (DPR, 안티앨리어싱 조절)
+  - 현재 상태: 대부분 완화, LOD 적용은 향후 과제
+
+  3.7.3 리플레이 시스템 안정화
+
+  - 문제: 슬라이더 조작 시 상태 불일치
+  - 해결: 여러 상태 → replayTime 단일 상태 통합
+  - 결과: requestAnimationFrame 기준 제어, 버그 근본 해결
+
+  ---
+  3.8 테스트 및 품질 관리
+
+  3.8.1 단위 테스트 결과
+
+  - Jest 테스트
+    - forces.test.ts: 중력, 항력 계산 정확도 검증
+    - integrator.test.ts: Euler/RK4 적분 오차 비교
+  - 커버리지: 물리 엔진 핵심 로직 70% 이상
+
+  3.8.2 성능 모니터링
+
+  - DebugPanel.tsx
+    - 물리 계산 시간: 평균 1.6-4.7ms (매우 빠름)
+    - 렌더링 FPS: 30fps 이상 (저사양 설정)
+    - 메모리 사용량: < 500MB
+  - 콘솔 로그
+    - 시뮬레이션 시작 시: 계산 시간, 궤적 포인트, 결과
+    - 렌더링 중: 1초마다 FPS, 렌더 시간
+
+  ---
+  4. 결론
+
+  4.1 구현 성과
+
+  - 주요 기능 완료
+    - 물리 엔진 (Euler/RK4 적분, 중력+항력+마그누스)
+    - 3D 렌더링 (블렌더 투수 모델, 힘 벡터 시각화)
+    - 비교 모드 (2개 실험 동시 분석)
+    - UI 디자인 시스템 (공통 컴포넌트, 디자인 토큰)
+    - 사용자 인증 (Supabase Auth, RLS)
+  - 성능 목표 달성
+    - 저사양 PC 30fps 이상
+    - 물리 계산 < 5ms (목표: 100ms)
+  - 확장 가능한 아키텍처
+    - 모듈식 설계 (core, scenarios 분리)
+    - Generic 타입 시스템 (80% 코드 재사용)
+
+  4.2 기대 효과
+
+  - 교육적 가치
+    - 물리 법칙 직관적 학습 (마그누스 효과, 항력)
+    - 실시간 파라미터 조정 실험
+    - 힘 벡터 시각화로 이해도 향상
+  - 사업성 확보
+    - B2B 라이선스 판매 (학교, 학원)
+    - 플랫폼 확장 (다른 시나리오 DLC)
+  - 기술적 성과
+    - 확장 가능한 아키텍처 완성
+    - 저사양 최적화 노하우 축적
+
+  4.3 프로젝트 한계
+
+  - 렌더링 최적화 여지
+    - 애니메이션 중 FPS 9-15 (일부 저사양 환경)
+    - LOD(Level of Detail) 미적용
+  - 모바일 최적화 미완료
+    - 반응형 레이아웃 일부 보류
+    - QR 코드 기능 미구현
+  - 실시간 협업 기능 미구현
+    - Supabase Realtime 미사용
+    - 다중 사용자 동기화 없음
+
+  4.4 추후 과제
+
+  - Phase 3: 반응형 레이아웃 추가 개선, QR 코드
+  - Phase 4: 교사-학생 과제 기능, 학습 진행도
+  - 2차 시나리오: 책상 중력 게임 (Gravity Assist Puzzle)
+    - 휴대폰 활용 협업 게임
+    - 만유인력, 케플러 궤도 학습
+    - 5-6명 참여 실시간 동기화
+  - 렌더링 성능 개선: LOD 적용, WebGL 최적화
+  - 모바일 네이티브 앱: React Native 전환
+
+  ---
+  부록(작성 보류)
+
+  A. 주요 파일 구조
+
+  src/
+  ├── core/physics/       (물리 엔진)
+  ├── core/renderer/      (3D 렌더링)
+  ├── core/ui/            (공통 UI)
+  ├── scenarios/pitch/    (투구 시뮬레이터)
+  ├── components/common/  (공통 컴포넌트)
+  ├── contexts/           (상태 관리)
+  ├── lib/                (Supabase)
+  └── types/              (TypeScript 타입)
+
+  B. 다이어그램 목록
+
+  - 시스템 아키텍처 (1-architecture.mmd)
+  - 시뮬레이션 실행 시퀀스 (2-simulation-sequence.mmd)
+  - ERD (3-erd.mmd)
+  - 상태 전이도 (4-state-diagram.mmd)
+  - 컴포넌트 계층도 (5-component-tree.mmd)
+  - API 엔드포인트 (6-api-endpoints.mmd)
+  - 데이터 흐름도 (7-data-flow.mmd)
+  - 배포 구조 (8-deployment.mmd)
+  - 물리 엔진 흐름도 (9-physics-flowchart.mmd)
+  - Auth 흐름도 (10-auth-flow.mmd)
+
+  C. 코드 예시
+
+  - 중력 계산 (forces.ts)
+  - 항력 계산 (forces.ts)
+  - 마그누스 효과 (forces.ts)
+  - Euler 적분 (integrator.ts)
+  - RK4 적분 (integrator.ts)
+  - PitchSimulator 클래스 (simulator.ts)
+
+  D. 단위 테스트 결과
+
+  - forces.test.ts 결과
+  - integrator.test.ts 결과
+
+  E. 참고 문헌
+
+  - Three.js 공식 문서
+  - Supabase 공식 문서

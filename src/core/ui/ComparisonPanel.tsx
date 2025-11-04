@@ -3,6 +3,9 @@ import styled from 'styled-components'
 import { supabaseExperimentsService, SupabaseExperiment } from '@/utils/supabaseExperiments'
 import { useComparison } from '@/contexts/ComparisonContext'
 import { ComparisonResultTable } from './ComparisonResultTable'
+import { ComparisonForceVectorTable } from './ComparisonForceVectorTable'
+import { IoEyeOutline } from 'react-icons/io5'
+import { theme } from '@/styles/theme'
 
 /**
  * 비교 모드 패널
@@ -15,6 +18,7 @@ export function ComparisonPanel() {
   const [isLoading, setIsLoading] = useState(false)
 
   const comparison = useComparison()
+  const { showForceVectors, setShowForceVectors, comparisonReplayTime, setComparisonReplayTime } = comparison
 
   useEffect(() => {
     loadExperiments()
@@ -144,12 +148,36 @@ export function ComparisonPanel() {
           <StopButton onClick={() => comparison.stopComparison()}>
             비교 종료
           </StopButton>
+
+          {/* 힘 벡터 토글 */}
+          <ForceVectorToggle>
+            <ToggleLabel>
+              <input
+                type="checkbox"
+                checked={showForceVectors}
+                onChange={(e) => setShowForceVectors(e.target.checked)}
+              />
+              <IoEyeOutline size={18} />
+              힘 벡터 비교
+            </ToggleLabel>
+          </ForceVectorToggle>
+
           <ComparisonResultTable
             resultA={selectedA.result}
             resultB={selectedB.result}
             nameA={selectedA.name}
             nameB={selectedB.name}
           />
+
+          {/* 힘 벡터 비교 표 */}
+          {showForceVectors && (
+            <ComparisonForceVectorTable
+              experimentA={selectedA}
+              experimentB={selectedB}
+              replayTime={comparisonReplayTime}
+              onTimeChange={setComparisonReplayTime}
+            />
+          )}
         </>
       )}
 
@@ -256,6 +284,34 @@ const InfoValue = styled.span`
 
   &.ball {
     color: #ff9800;
+  }
+`
+
+const ForceVectorToggle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.sm};
+  padding: ${theme.spacing.sm};
+  background: ${theme.colors.background.tertiary};
+  border-radius: ${theme.borderRadius.md};
+  border: 1px solid ${theme.colors.border.light};
+`
+
+const ToggleLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.xs};
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.medium};
+  color: ${theme.colors.text.secondary};
+  cursor: pointer;
+  user-select: none;
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: ${theme.colors.primary};
   }
 `
 

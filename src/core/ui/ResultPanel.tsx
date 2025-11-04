@@ -1,16 +1,24 @@
 import styled from 'styled-components'
-import { SimulationResult } from '@/types'
+import { SimulationResult, Vector3 } from '@/types'
 import { theme } from '@/styles/theme'
 import { MdSportsBaseball, MdBlock } from 'react-icons/md'
+import { IoEyeOutline } from 'react-icons/io5'
 
 interface ResultPanelProps {
   result: SimulationResult | null
+  showForceVectors?: boolean
+  onToggleForceVectors?: (show: boolean) => void
+  currentForces?: {
+    gravity: Vector3
+    drag: Vector3
+    magnus: Vector3
+  } | null
 }
 
 /**
  * 시뮬레이션 결과 표시 패널
  */
-export function ResultPanel({ result }: ResultPanelProps) {
+export function ResultPanel({ result, showForceVectors = false, onToggleForceVectors, currentForces }: ResultPanelProps) {
   if (!result) {
     return (
       <Panel>
@@ -79,6 +87,97 @@ export function ResultPanel({ result }: ResultPanelProps) {
           )}
         </JudgmentValue>
       </JudgmentSection>
+
+      {/* 힘 벡터 시각화 토글 */}
+      {onToggleForceVectors && (
+        <ForceVectorToggle>
+          <ToggleLabel>
+            <IoEyeOutline size={18} />
+            힘 벡터 표시
+          </ToggleLabel>
+          <ToggleCheckbox
+            type="checkbox"
+            checked={showForceVectors}
+            onChange={(e) => onToggleForceVectors(e.target.checked)}
+          />
+          <ForceVectorLegend show={showForceVectors}>
+            <LegendItem>
+              <LegendColor color="#ff0000" /> 중력
+            </LegendItem>
+            <LegendItem>
+              <LegendColor color="#0066ff" /> 항력
+            </LegendItem>
+            <LegendItem>
+              <LegendColor color="#00ff00" /> 마그누스
+            </LegendItem>
+          </ForceVectorLegend>
+
+          {/* 힘 벡터 수치 표 */}
+          {showForceVectors && currentForces && (
+            <ForceVectorTable>
+              <TableTitle>현재 시점 힘 벡터 (N)</TableTitle>
+              <Table>
+                <thead>
+                  <tr>
+                    <Th>힘</Th>
+                    <Th>X축</Th>
+                    <Th>Y축</Th>
+                    <Th>Z축</Th>
+                    <Th>크기</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <TdLabel>
+                      <LegendColor color="#ff0000" /> 중력
+                    </TdLabel>
+                    <TdValue>{currentForces.gravity.x.toFixed(3)}</TdValue>
+                    <TdValue>{currentForces.gravity.y.toFixed(3)}</TdValue>
+                    <TdValue>{currentForces.gravity.z.toFixed(3)}</TdValue>
+                    <TdValue bold>
+                      {Math.sqrt(
+                        currentForces.gravity.x ** 2 +
+                        currentForces.gravity.y ** 2 +
+                        currentForces.gravity.z ** 2
+                      ).toFixed(3)}
+                    </TdValue>
+                  </tr>
+                  <tr>
+                    <TdLabel>
+                      <LegendColor color="#0066ff" /> 항력
+                    </TdLabel>
+                    <TdValue>{currentForces.drag.x.toFixed(3)}</TdValue>
+                    <TdValue>{currentForces.drag.y.toFixed(3)}</TdValue>
+                    <TdValue>{currentForces.drag.z.toFixed(3)}</TdValue>
+                    <TdValue bold>
+                      {Math.sqrt(
+                        currentForces.drag.x ** 2 +
+                        currentForces.drag.y ** 2 +
+                        currentForces.drag.z ** 2
+                      ).toFixed(3)}
+                    </TdValue>
+                  </tr>
+                  <tr>
+                    <TdLabel>
+                      <LegendColor color="#00ff00" /> 마그누스
+                    </TdLabel>
+                    <TdValue>{currentForces.magnus.x.toFixed(3)}</TdValue>
+                    <TdValue>{currentForces.magnus.y.toFixed(3)}</TdValue>
+                    <TdValue>{currentForces.magnus.z.toFixed(3)}</TdValue>
+                    <TdValue bold>
+                      {Math.sqrt(
+                        currentForces.magnus.x ** 2 +
+                        currentForces.magnus.y ** 2 +
+                        currentForces.magnus.z ** 2
+                      ).toFixed(3)}
+                    </TdValue>
+                  </tr>
+                </tbody>
+              </Table>
+            </ForceVectorTable>
+          )}
+        </ForceVectorToggle>
+      )}
     </Panel>
   )
 }
@@ -152,6 +251,108 @@ const Value = styled.div`
   font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.text.primary};
   font-family: ${theme.typography.fontFamily.mono};
+`
+
+const ForceVectorToggle = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.sm};
+  padding: ${theme.spacing.base};
+  background: ${theme.colors.background.tertiary};
+  border-radius: ${theme.borderRadius.md};
+  border: 1px solid ${theme.colors.border.light};
+  margin-top: ${theme.spacing.sm};
+`
+
+const ToggleLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.xs};
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.medium};
+  color: ${theme.colors.text.secondary};
+  cursor: pointer;
+  user-select: none;
+`
+
+const ToggleCheckbox = styled.input`
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: ${theme.colors.primary};
+`
+
+const ForceVectorLegend = styled.div<{ show: boolean }>`
+  display: ${props => props.show ? 'flex' : 'none'};
+  flex-direction: column;
+  gap: ${theme.spacing.xs};
+  padding: ${theme.spacing.sm};
+  background: ${theme.colors.background.secondary};
+  border-radius: ${theme.borderRadius.sm};
+  border-left: 3px solid ${theme.colors.primary};
+`
+
+const LegendItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.xs};
+  font-size: ${theme.typography.fontSize.xs};
+  color: ${theme.colors.text.tertiary};
+`
+
+const LegendColor = styled.div<{ color: string }>`
+  width: 12px;
+  height: 12px;
+  background: ${props => props.color};
+  border-radius: 50%;
+  flex-shrink: 0;
+`
+
+const ForceVectorTable = styled.div`
+  margin-top: ${theme.spacing.sm};
+  background: ${theme.colors.background.secondary};
+  border-radius: ${theme.borderRadius.sm};
+  padding: ${theme.spacing.sm};
+  border-left: 3px solid ${theme.colors.primary};
+`
+
+const TableTitle = styled.div`
+  font-size: ${theme.typography.fontSize.xs};
+  font-weight: ${theme.typography.fontWeight.semibold};
+  color: ${theme.colors.text.secondary};
+  margin-bottom: ${theme.spacing.xs};
+`
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  font-size: ${theme.typography.fontSize.xs};
+  font-family: ${theme.typography.fontFamily.mono};
+`
+
+const Th = styled.th`
+  text-align: left;
+  padding: ${theme.spacing.xs};
+  color: ${theme.colors.text.tertiary};
+  font-weight: ${theme.typography.fontWeight.medium};
+  border-bottom: 1px solid ${theme.colors.border.light};
+  font-size: ${theme.typography.fontSize.xs};
+`
+
+const TdLabel = styled.td`
+  padding: ${theme.spacing.xs};
+  color: ${theme.colors.text.secondary};
+  font-weight: ${theme.typography.fontWeight.medium};
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.xs};
+`
+
+const TdValue = styled.td<{ bold?: boolean }>`
+  padding: ${theme.spacing.xs};
+  text-align: right;
+  color: ${theme.colors.text.primary};
+  font-weight: ${props => props.bold ? theme.typography.fontWeight.semibold : theme.typography.fontWeight.regular};
 `
 
 const JudgmentSection = styled.div<{ strike: boolean }>`

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import styled from 'styled-components'
-import { Vector3 } from '@/types'
+import { Vector3, TrajectoryPoint } from '@/types'
 import { theme } from '@/styles/theme'
 import { MdMovie } from 'react-icons/md'
 
 interface ReplayControlsProps {
-  trajectory: Vector3[]
+  trajectory: Vector3[] | TrajectoryPoint[]
   onTimeChange: (time: number) => void
   playbackSpeed: number
   onSpeedChange: (speed: number) => void

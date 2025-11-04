@@ -1,6 +1,6 @@
-import { Vector3, PitchParameters, SimulationState, SimulationResult, PHYSICS_CONSTANTS } from '@/types'
+import { Vector3, PitchParameters, SimulationState, SimulationResult, TrajectoryPoint, PHYSICS_CONSTANTS } from '@/types'
 import { vec3, eulerIntegrate, rk4Integrate, DerivativeFunction } from './integrator'
-import { calculateTotalForce, calculateAcceleration } from './forces'
+import { calculateTotalForce, calculateAcceleration, calculateGravity, calculateDrag, calculateMagnus, calculateAirDensity } from './forces'
 
 /**
  * 투구 시뮬레이터
@@ -22,6 +22,23 @@ export class PitchSimulator {
     this.dt = dt
     this.maxTime = maxTime
     this.useRK4 = useRK4
+  }
+
+  /**
+   * v2: 각 힘 성분 계산 (시각화용)
+   */
+  private calculateForces(velocity: Vector3) {
+    const airDensity = calculateAirDensity(
+      this.params.environment.temperature,
+      this.params.environment.pressure,
+      this.params.environment.humidity
+    )
+
+    return {
+      gravity: calculateGravity(this.params.ball.mass, this.params.environment.gravity),
+      drag: calculateDrag(velocity, this.params, airDensity),
+      magnus: calculateMagnus(velocity, this.params.initial.spin, this.params, airDensity)
+    }
   }
 
   /**
@@ -80,7 +97,10 @@ export class PitchSimulator {
       time: 0
     }
 
-    const trajectory: Vector3[] = [vec3.clone(state.position)]
+    const trajectory: TrajectoryPoint[] = [{
+      position: vec3.clone(state.position),
+      forces: this.calculateForces(state.velocity)
+    }]
     let maxHeight = state.position.y
     let plateHeight = state.position.y
     let plateX = 0  // 홈플레이트 통과 시 x 좌표 추가
@@ -97,8 +117,11 @@ export class PitchSimulator {
       state.velocity = integrated.velocity
       state.time += this.dt
 
-      // 궤적 기록
-      trajectory.push(vec3.clone(state.position))
+      // 궤적 기록 (위치 + 힘 벡터)
+      trajectory.push({
+        position: vec3.clone(state.position),
+        forces: this.calculateForces(state.velocity)
+      })
 
       // 최고 높이 갱신
       if (state.position.y > maxHeight) {
@@ -110,6 +133,7 @@ export class PitchSimulator {
         plateHeight = state.position.y
         plateX = state.position.x  // 플레이트 통과 시의 x 좌표 기록
         reachedPlate = true
+        break  // 스트라이크 존 통과 시 시뮬레이션 즉시 종료
       }
 
       // 지면 도달 시 종료

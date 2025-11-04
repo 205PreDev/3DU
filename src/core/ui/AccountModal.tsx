@@ -13,7 +13,6 @@ interface AccountModalProps {
 interface UserProfile {
   username: string
   email: string
-  role: 'student' | 'teacher'
 }
 
 /**
@@ -43,7 +42,7 @@ export function AccountModal({ isOpen, onClose }: AccountModalProps) {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('username, role')
+        .select('username')
         .eq('id', user.id)
         .single()
 
@@ -51,8 +50,7 @@ export function AccountModal({ isOpen, onClose }: AccountModalProps) {
 
       setProfile({
         username: data.username,
-        email: user.email || '',
-        role: data.role
+        email: user.email || ''
       })
     } catch (error) {
       console.error('프로필 조회 실패:', error)
@@ -100,13 +98,6 @@ export function AccountModal({ isOpen, onClose }: AccountModalProps) {
                 <InfoGroup>
                   <Label>이메일</Label>
                   <Value>{profile.email}</Value>
-                </InfoGroup>
-
-                <InfoGroup>
-                  <Label>역할</Label>
-                  <RoleBadge $role={profile.role}>
-                    {profile.role === 'student' ? '학생' : '교사'}
-                  </RoleBadge>
                 </InfoGroup>
               </ProfileSection>
 
@@ -244,23 +235,6 @@ const Value = styled.span`
   font-weight: ${theme.typography.fontWeight.regular};
   color: ${theme.colors.text.primary};
   word-break: break-word;
-`
-
-const RoleBadge = styled.span<{ $role: 'student' | 'teacher' }>`
-  display: inline-block;
-  padding: ${theme.spacing.xs} ${theme.spacing.md};
-  border-radius: ${theme.borderRadius.md};
-  font-size: ${theme.typography.fontSize.sm};
-  font-weight: ${theme.typography.fontWeight.semibold};
-  background: ${props => props.$role === 'teacher'
-    ? 'rgba(123, 47, 255, 0.2)'
-    : 'rgba(0, 217, 255, 0.2)'
-  };
-  color: ${props => props.$role === 'teacher'
-    ? theme.colors.secondary.light
-    : theme.colors.primary.light
-  };
-  width: fit-content;
 `
 
 const LogoutButton = styled.button`

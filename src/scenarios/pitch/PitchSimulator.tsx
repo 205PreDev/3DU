@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import styled from 'styled-components'
 import { theme } from '@/styles/theme'
 import { useSimulation } from '@/contexts/SimulationContext'
@@ -10,6 +10,7 @@ import { Field } from './Field'
 import { Ball3D } from './Ball3D'
 import { Pitcher3D } from './Pitcher3D'
 import { TrajectoryLine, CompletedTrajectoryLine } from './TrajectoryLine'
+import { ForceVectors3D } from './ForceVectors3D'
 import { PitchInputPanel } from './PitchInputPanel'
 import { ResultPanel } from '@/core/ui/ResultPanel'
 import { ReplayControls } from '@/core/ui/ReplayControls'
@@ -25,7 +26,6 @@ import { GraphicsSettingsPanel } from '@/core/ui/GraphicsSettingsPanel'
 import { CameraController } from '@/core/renderer/CameraController'
 import { Vector3, PitchParameters } from '@/types'
 import { supabaseExperimentsService } from '@/utils/supabaseExperiments'
-import { useGraphics } from '@/contexts/GraphicsContext'
 
 /**
  * 투구 시뮬레이터 메인 컴포넌트
@@ -44,13 +44,20 @@ export function PitchSimulator() {
     setCameraPreset,
     setParams
   } = useSimulation()
-  const { settings } = useGraphics()
-  const { experimentA, experimentB, isComparing } = useComparison()
+  const {
+    experimentA,
+    experimentB,
+    isComparing,
+    stopComparison,
+    showForceVectors: comparisonShowForceVectors,
+    comparisonReplayTime
+  } = useComparison()
   const [hasReachedPlate, setHasReachedPlate] = useState(false)
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false)
   const [showBall, setShowBall] = useState(false) // 공 표시 여부 (48프레임 후)
   const [pitcherStartTrigger, setPitcherStartTrigger] = useState(0) // 투수 애니메이션 시작 트리거
+  const [showForceVectors, setShowForceVectors] = useState(false) // 힘 벡터 표시 여부
 
   // 시뮬레이션 결과가 나오면 초기화
   useEffect(() => {
@@ -93,7 +100,7 @@ export function PitchSimulator() {
         // 스트라이크 존 통과 시 일시정지
         const nextIndex = Math.floor(next * 30)
         const nextPos = result.trajectory[nextIndex]
-        if (nextPos && nextPos.z <= -18.44) {
+        if (nextPos && nextPos.position.z <= -18.44) {
           setIsReplaying(false)
           setHasReachedPlate(true)
           return next
@@ -126,9 +133,11 @@ export function PitchSimulator() {
     return idx
   }, [result, replayTime, isReplaying])
 
-  const currentPosition: Vector3 = result && result.trajectory[currentIndex]
+  const currentTrajectoryPoint = result && result.trajectory[currentIndex]
     ? result.trajectory[currentIndex]
-    : { x: 0, y: 2, z: 0 }
+    : null
+
+  const currentPosition: Vector3 = currentTrajectoryPoint?.position || { x: 0, y: 2, z: 0 }
 
   const currentTrajectory = result
     ? result.trajectory.slice(0, currentIndex + 1)
@@ -165,6 +174,11 @@ export function PitchSimulator() {
       // "결과" 탭 진입 시 현재 위치 유지
       // replayTime과 isReplaying은 그대로 유지 (아무것도 안 함)
     }
+
+    // 비교 모드에서 다른 탭으로 이동 시 비교 종료
+    if (isComparing && tabId !== 'comparison') {
+      stopComparison()
+    }
   }
 
   // 키보드 단축키 핸들러
@@ -185,11 +199,16 @@ export function PitchSimulator() {
           break
         case 'r':
           e.preventDefault()
-          // TODO: reset 기능 구현
+          if (result) {
+            setReplayTime(0) // 처음으로 되돌리기
+            setIsReplaying(false) // 일시정지 상태로
+          }
           break
         case 'escape':
           e.preventDefault()
-          setIsReplaying(false) // 일시정지
+          if (result) {
+            setIsReplaying(false) // 일시정지
+          }
           break
 
         // 카메라 프리셋
@@ -214,16 +233,16 @@ export function PitchSimulator() {
           setCameraPreset('free')
           break
 
-        // 리플레이 제어
+        // 리플레이 제어 (일시정지 상태에서도 작동)
         case 'arrowleft':
           e.preventDefault()
-          if (result && isReplaying) {
+          if (result) {
             setReplayTime(prev => Math.max(0, prev - 0.1))
           }
           break
         case 'arrowright':
           e.preventDefault()
-          if (result && isReplaying) {
+          if (result) {
             const maxTime = result.trajectory.length / 30
             setReplayTime(prev => Math.min(maxTime, prev + 0.1))
           }
@@ -286,7 +305,12 @@ export function PitchSimulator() {
               onPlayingChange={setIsReplaying}
             />
           )}
-          <ResultPanel result={hasReachedPlate ? result : null} />
+          <ResultPanel
+            result={hasReachedPlate ? result : null}
+            showForceVectors={showForceVectors}
+            onToggleForceVectors={setShowForceVectors}
+            currentForces={currentTrajectoryPoint?.forces || null}
+          />
         </ResultsTabContent>
       )
     },
@@ -352,18 +376,60 @@ export function PitchSimulator() {
               <>
                 {/* 비교 모드: 2개 궤적 동시 표시 */}
                 {experimentA && (
-                  <TrajectoryLine
-                    points={experimentA.result.trajectory}
-                    color="#4444ff"
-                    lineWidth={3}
-                  />
+                  <>
+                    <TrajectoryLine
+                      points={experimentA.result.trajectory}
+                      color="#4444ff"
+                      lineWidth={3}
+                    />
+                    {/* 실험 A 힘 벡터 */}
+                    {comparisonShowForceVectors && (() => {
+                      const index = Math.min(
+                        Math.floor(comparisonReplayTime * 30),
+                        experimentA.result.trajectory.length - 1
+                      )
+                      const point = experimentA.result.trajectory[index]
+                      if (point?.forces) {
+                        return (
+                          <ForceVectors3D
+                            position={point.position}
+                            forces={point.forces}
+                            scale={0.1}
+                            experimentId="A"
+                          />
+                        )
+                      }
+                      return null
+                    })()}
+                  </>
                 )}
                 {experimentB && (
-                  <TrajectoryLine
-                    points={experimentB.result.trajectory}
-                    color="#ff4444"
-                    lineWidth={3}
-                  />
+                  <>
+                    <TrajectoryLine
+                      points={experimentB.result.trajectory}
+                      color="#ff4444"
+                      lineWidth={3}
+                    />
+                    {/* 실험 B 힘 벡터 */}
+                    {comparisonShowForceVectors && (() => {
+                      const index = Math.min(
+                        Math.floor(comparisonReplayTime * 30),
+                        experimentB.result.trajectory.length - 1
+                      )
+                      const point = experimentB.result.trajectory[index]
+                      if (point?.forces) {
+                        return (
+                          <ForceVectors3D
+                            position={point.position}
+                            forces={point.forces}
+                            scale={0.1}
+                            experimentId="B"
+                          />
+                        )
+                      }
+                      return null
+                    })()}
+                  </>
                 )}
               </>
             ) : (
@@ -371,13 +437,22 @@ export function PitchSimulator() {
                 {/* 일반 모드 - 공은 48프레임 후에만 표시 */}
                 {showBall && <Ball3D position={currentPosition} />}
 
+                {/* 힘 벡터 시각화 */}
+                {showBall && showForceVectors && currentTrajectoryPoint?.forces && (
+                  <ForceVectors3D
+                    position={currentPosition}
+                    forces={currentTrajectoryPoint.forces}
+                    scale={0.1}
+                  />
+                )}
+
                 {/* 진행 중인 궤적 */}
-                {showBall && (isReplaying || currentIndex < result.trajectory.length - 1) && currentTrajectory.length > 1 && (
+                {showBall && result && (isReplaying || currentIndex < result.trajectory.length - 1) && currentTrajectory.length > 1 && (
                   <TrajectoryLine points={currentTrajectory} />
                 )}
 
                 {/* 완료된 궤적 */}
-                {showBall && !isReplaying && currentIndex >= result.trajectory.length - 1 && completedTrajectory.length > 1 && (
+                {showBall && result && !isReplaying && currentIndex >= result.trajectory.length - 1 && completedTrajectory.length > 1 && (
                   <CompletedTrajectoryLine points={completedTrajectory} />
                 )}
               </>
