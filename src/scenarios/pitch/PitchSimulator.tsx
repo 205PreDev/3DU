@@ -66,6 +66,7 @@ export function PitchSimulator() {
       setIsReplaying(false) // 자동 재생 시작
       setHasReachedPlate(false)
       setShowBall(false) // 공 숨김
+      setShowForceVectors(false) // 힘 벡터 숨김
       setPitcherStartTrigger(prev => prev + 1) // 투수 애니메이션 시작
     }
   }, [result, setReplayTime, setIsReplaying])
@@ -375,62 +376,64 @@ export function PitchSimulator() {
             {isComparing ? (
               <>
                 {/* 비교 모드: 2개 궤적 동시 표시 */}
-                {experimentA && (
-                  <>
-                    <TrajectoryLine
-                      points={experimentA.result.trajectory}
-                      color="#4444ff"
-                      lineWidth={3}
-                    />
-                    {/* 실험 A 힘 벡터 */}
-                    {comparisonShowForceVectors && (() => {
-                      const index = Math.min(
-                        Math.floor(comparisonReplayTime * 30),
-                        experimentA.result.trajectory.length - 1
-                      )
-                      const point = experimentA.result.trajectory[index]
-                      if (point?.forces) {
-                        return (
-                          <ForceVectors3D
-                            position={point.position}
-                            forces={point.forces}
-                            scale={0.1}
-                            experimentId="A"
-                          />
-                        )
-                      }
-                      return null
-                    })()}
-                  </>
-                )}
-                {experimentB && (
-                  <>
-                    <TrajectoryLine
-                      points={experimentB.result.trajectory}
-                      color="#ff4444"
-                      lineWidth={3}
-                    />
-                    {/* 실험 B 힘 벡터 */}
-                    {comparisonShowForceVectors && (() => {
-                      const index = Math.min(
-                        Math.floor(comparisonReplayTime * 30),
-                        experimentB.result.trajectory.length - 1
-                      )
-                      const point = experimentB.result.trajectory[index]
-                      if (point?.forces) {
-                        return (
-                          <ForceVectors3D
-                            position={point.position}
-                            forces={point.forces}
-                            scale={0.1}
-                            experimentId="B"
-                          />
-                        )
-                      }
-                      return null
-                    })()}
-                  </>
-                )}
+                {experimentA && (() => {
+                  const index = Math.min(
+                    Math.floor(comparisonReplayTime * 30),
+                    experimentA.result.trajectory.length - 1
+                  )
+                  const point = experimentA.result.trajectory[index]
+
+                  return (
+                    <>
+                      {/* 실험 A 공 (파란색) */}
+                      {point && <Ball3D position={point.position} />}
+
+                      <TrajectoryLine
+                        points={experimentA.result.trajectory}
+                        color="#4444ff"
+                        lineWidth={3}
+                      />
+                      {/* 실험 A 힘 벡터 */}
+                      {comparisonShowForceVectors && point?.forces && (
+                        <ForceVectors3D
+                          position={point.position}
+                          forces={point.forces}
+                          scale={0.15}
+                          experimentId="A"
+                        />
+                      )}
+                    </>
+                  )
+                })()}
+                {experimentB && (() => {
+                  const index = Math.min(
+                    Math.floor(comparisonReplayTime * 30),
+                    experimentB.result.trajectory.length - 1
+                  )
+                  const point = experimentB.result.trajectory[index]
+
+                  return (
+                    <>
+                      {/* 실험 B 공 (빨간색) */}
+                      {point && <Ball3D position={point.position} />}
+
+                      <TrajectoryLine
+                        points={experimentB.result.trajectory}
+                        color="#ff4444"
+                        lineWidth={3}
+                      />
+                      {/* 실험 B 힘 벡터 */}
+                      {comparisonShowForceVectors && point?.forces && (
+                        <ForceVectors3D
+                          position={point.position}
+                          forces={point.forces}
+                          scale={0.15}
+                          experimentId="B"
+                        />
+                      )}
+                    </>
+                  )
+                })()}
               </>
             ) : (
               <>
@@ -442,7 +445,7 @@ export function PitchSimulator() {
                   <ForceVectors3D
                     position={currentPosition}
                     forces={currentTrajectoryPoint.forces}
-                    scale={0.1}
+                    scale={0.15}
                   />
                 )}
 
