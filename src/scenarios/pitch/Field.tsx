@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import { PHYSICS_CONSTANTS } from '@/types'
 
 /**
  * 야구장 바닥 및 마운드/플레이트 표시
  */
-export function Field() {
+export const Field = memo(function Field() {
   const moundToPlate = PHYSICS_CONSTANTS.MOUND_TO_PLATE
 
   return (
@@ -44,4 +45,4 @@ export function Field() {
       </mesh>
     </group>
   )
-}
+})

@@ -19,7 +19,17 @@ export class PitchSimulator {
     useRK4 = false
   ) {
     this.params = params
-    this.dt = dt
+    // 속도에 따른 dt 동적 조정 (빠른 공: 더 정밀하게, 느린 공: 성능 우선)
+    const baseVelocity = params.initial.velocity
+    if (baseVelocity > 35) {
+      // 빠른 공 (35m/s 이상, ~126km/h): dt 줄이기
+      this.dt = Math.min(dt, 0.008)
+    } else if (baseVelocity < 25) {
+      // 느린 공 (25m/s 미만, ~90km/h): dt 늘리기
+      this.dt = Math.max(dt, 0.015)
+    } else {
+      this.dt = dt
+    }
     this.maxTime = maxTime
     this.useRK4 = useRK4
   }

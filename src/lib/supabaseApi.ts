@@ -213,7 +213,7 @@ export async function migrateLocalExperiments(): Promise<void> {
     // 백업 후 삭제
     localStorage.setItem('recentExperiments_backup', localData)
     localStorage.removeItem('recentExperiments')
-    console.log(`✅ LocalStorage에서 ${localExperiments.length}개 실험 마이그레이션 완료`)
+    // 프로덕션: 마이그레이션 로그 제거
   } catch (error) {
     console.error('마이그레이션 실패:', error)
     throw error

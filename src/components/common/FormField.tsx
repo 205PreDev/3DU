@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { theme } from '@/styles/theme'
 
@@ -86,18 +87,63 @@ export function NumberInput({
   unit,
   disabled
 }: NumberInputProps) {
+  const [localValue, setLocalValue] = useState(value)
+
+  // debounce: 300ms 후 실제 onChange 호출
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localValue !== value) {
+        onChange(localValue)
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [localValue])
+
+  // 외부에서 value 변경 시 동기화
+  useEffect(() => {
+    setLocalValue(value)
+  }, [value])
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat(e.target.value)
     if (!isNaN(newValue)) {
-      onChange(newValue)
+      setLocalValue(newValue)
     }
+  }
+
+  // 숫자, 소수점, 음수 기호, 화살표, Backspace만 허용
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const allowedKeys = [
+      'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+      'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+      'Home', 'End'
+    ]
+
+    // 허용된 특수 키
+    if (allowedKeys.includes(e.key)) return
+
+    // Ctrl/Cmd + A, C, V, X (복사/붙여넣기)
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) return
+
+    // 숫자
+    if (/^\d$/.test(e.key)) return
+
+    // 소수점 (이미 있으면 차단)
+    if (e.key === '.' && !e.currentTarget.value.includes('.')) return
+
+    // 음수 기호 (맨 앞에만 허용)
+    if (e.key === '-' && e.currentTarget.selectionStart === 0 && !e.currentTarget.value.includes('-')) return
+
+    // 그 외 모두 차단
+    e.preventDefault()
   }
 
   return (
     <NumberInputContainer>
       <Slider
         type="range"
-        value={value}
+        value={localValue}
         onChange={handleChange}
         min={min}
         max={max}
@@ -107,8 +153,9 @@ export function NumberInput({
       <ValueDisplay>
         <ValueInput
           type="number"
-          value={value}
+          value={localValue}
           onChange={handleChange}
+          onKeyDown={handleKeyDown}
           min={min}
           max={max}
           step={step}

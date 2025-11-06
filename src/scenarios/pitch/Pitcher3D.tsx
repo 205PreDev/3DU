@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, memo } from 'react'
 import * as THREE from 'three'
 import { FBXLoader } from 'three-stdlib'
 import { PitchParameters } from '@/types'
@@ -14,7 +14,7 @@ interface Pitcher3DProps {
  * FBX 투수 모델 (Blender 모델)
  * startTrigger가 증가할 때마다 1프레임부터 애니메이션 재생
  */
-export function Pitcher3D({ params, startTrigger, onReleaseFrame }: Pitcher3DProps) {
+export const Pitcher3D = memo(function Pitcher3D({ params, startTrigger, onReleaseFrame }: Pitcher3DProps) {
   const groupRef = useRef<THREE.Group>(null)
   const [model, setModel] = useState<THREE.Group | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -77,9 +77,8 @@ export function Pitcher3D({ params, startTrigger, onReleaseFrame }: Pitcher3DPro
         setModel(fbx)
         setIsLoading(false)
       },
-      (progress) => {
-        const percent = (progress.loaded / progress.total) * 100
-        console.log(`⏳ Pitcher 모델 로딩 중: ${percent.toFixed(1)}%`)
+      () => {
+        // 프로덕션: 로딩 진행률 로그 제거
       },
       (err) => {
         console.error('❌ Pitcher FBX 모델 로드 실패:', err)
@@ -196,4 +195,4 @@ export function Pitcher3D({ params, startTrigger, onReleaseFrame }: Pitcher3DPro
       )}
     </group>
   )
-}
+})

@@ -1,0 +1,1298 @@
+교육용 3D 물리 시뮬레이터 - 졸업작품 보고서
+
+================================================================================
+목차
+================================================================================
+
+| 장 | 절 | 항 | 제목 | 페이지 |
+|---|---|---|---|---|
+| 1 | | | 작품 개요 | |
+| | 1.1 | | 작품 개요 | 1 |
+| | | 1.1.1 | 프로젝트명 및 개발 기간 | 1 |
+| | | 1.1.2 | 프로젝트 요약 | 1 |
+| | 1.2 | | 작품 선정 배경 | 2 |
+| | | 1.2.1 | 교육적 필요성 | 2 |
+| | | 1.2.2 | 기존 학습 방법의 한계 | 2 |
+| | | 1.2.3 | 프로젝트 목표 | 3 |
+| | 1.3 | | 유사 시스템 분석 | 3 |
+| | | 1.3.1 | 기존 물리 시뮬레이션 도구 | 3 |
+| | | 1.3.2 | 상용 야구 분석 도구 | 4 |
+| | | 1.3.3 | 차별화 포인트 | 4 |
+| | 1.4 | | 구현 범위 및 목표 | 5 |
+| | | 1.4.1 | 구현 범위 (In-Scope) | 5 |
+| | | 1.4.2 | 제외 범위 (Out-of-Scope) | 6 |
+| | | 1.4.3 | 성능 목표 | 6 |
+| | 1.5 | | 개발 환경 | 7 |
+| | | 1.5.1 | 프론트엔드 | 7 |
+| | | 1.5.2 | 백엔드 및 인프라 | 7 |
+| | | 1.5.3 | 협업 도구 | 8 |
+| 2 | | | 관련 기술 | |
+| | 2.1 | | Three.js 및 WebGL | 9 |
+| | | 2.1.1 | Three.js 개요 | 9 |
+| | | 2.1.2 | WebGL 2.0 렌더링 파이프라인 | 9 |
+| | | 2.1.3 | FBX 모델 로더 | 10 |
+| | 2.2 | | 물리 엔진 수치 해석 | 11 |
+| | | 2.2.1 | 수치 적분 방법 | 11 |
+| | | 2.2.2 | 물리력 계산 | 12 |
+| | | 2.2.3 | 공기 밀도 자동 계산 | 13 |
+| | 2.3 | | React 상태 관리 | 14 |
+| | | 2.3.1 | React Context API | 14 |
+| | | 2.3.2 | Context Factory 패턴 | 15 |
+| | 2.4 | | Supabase Auth 및 RLS | 16 |
+| | | 2.4.1 | Supabase Authentication | 16 |
+| | | 2.4.2 | Row Level Security (RLS) | 17 |
+| | | 2.4.3 | Realtime API | 17 |
+| | 2.5 | | TypeScript 타입 시스템 | 18 |
+| | | 2.5.1 | Generic 타입 시스템 | 18 |
+| | | 2.5.2 | 확장 가능한 아키텍처 | 19 |
+| | 2.6 | | 시스템 아키텍처 | 20 |
+| | | 2.6.1 | 클라이언트-서버 아키텍처 (BaaS) | 20 |
+| | | 2.6.2 | 디렉토리 구조 | 21 |
+| | | 2.6.3 | 컴포넌트 계층도 | 22 |
+| | 2.7 | | 데이터베이스 설계 | 23 |
+| | | 2.7.1 | ERD (Entity-Relationship Diagram) | 23 |
+| | | 2.7.2 | 테이블 스키마 | 24 |
+| | | 2.7.3 | RLS 정책 | 25 |
+| 3 | | | 구현 내용 | |
+| | 3.1 | | 물리 엔진 구현 | 26 |
+| | | 3.1.1 | PhysicsEngine 클래스 설계 | 26 |
+| | | 3.1.2 | 힘 계산 모듈 (forceCalculator.ts) | 27 |
+| | | 3.1.3 | RK4 적분 알고리즘 (integrator.ts) | 28 |
+| | | 3.1.4 | 시뮬레이터 메인 로직 (simulator.ts) | 29 |
+| | | 3.1.5 | 릴리스 포인트 자동 보정 | 30 |
+| | 3.2 | | 3D 렌더링 시스템 | 31 |
+| | | 3.2.1 | Scene3D 컴포넌트 | 31 |
+| | | 3.2.2 | Ball3D 및 TrajectoryLine | 32 |
+| | | 3.2.3 | VectorArrow (힘 벡터 시각화) | 33 |
+| | | 3.2.4 | CameraController (카메라 프리셋) | 34 |
+| | | 3.2.5 | Field (야구장 렌더링) | 35 |
+| | 3.3 | | 투수 3D 모델 및 애니메이션 | 36 |
+| | | 3.3.1 | Pitcher3D 컴포넌트 (FBX 로더) | 36 |
+| | | 3.3.2 | 블렌더 모델 사양 (119 프레임 30fps) | 37 |
+| | | 3.3.3 | 애니메이션 동기화 (48프레임 릴리스) | 38 |
+| | | 3.3.4 | 좌완/우완 미러링 | 39 |
+| | 3.4 | | 사용자 인터페이스 | 40 |
+| | | 3.4.1 | PitchInputPanel (파라미터 입력) | 40 |
+| | | 3.4.2 | ResultPanel (결과 표시) | 41 |
+| | | 3.4.3 | ReplayControls (리플레이 컨트롤) | 42 |
+| | | 3.4.4 | TabContainer (탭 UI) | 43 |
+| | | 3.4.5 | 로그인/회원가입 페이지 | 44 |
+| | 3.5 | | 실험 저장 및 비교 모드 | 45 |
+| | | 3.5.1 | Supabase 연동 (supabaseApi.ts) | 45 |
+| | | 3.5.2 | RecentExperimentsPanel | 46 |
+| | | 3.5.3 | ComparisonContext 및 ComparisonPanel | 47 |
+| | | 3.5.4 | ComparisonResultTable | 48 |
+| | 3.6 | | 그래픽 설정 및 디버그 | 49 |
+| | | 3.6.1 | GraphicsContext 및 설정 패널 | 49 |
+| | | 3.6.2 | DebugPanel (성능 모니터링) | 50 |
+| | | 3.6.3 | 동적 최적화 (DPR, 폴리곤, dt 조정) | 51 |
+| | 3.7 | | 코드 상세 (17개 핵심 파일) | 52 |
+| | | 3.7.1 | simulator.ts (전체 코드) | 52 |
+| | | 3.7.2 | forceCalculator.ts (전체 코드) | 59 |
+| | | 3.7.3 | integrator.ts (전체 코드) | 62 |
+| | | 3.7.4 | PhysicsEngine.ts (전체 코드) | 64 |
+| | | 3.7.5 | Scene3D.tsx (전체 코드) | 67 |
+| | | 3.7.6 | Ball3D.tsx (전체 코드) | 74 |
+| | | 3.7.7 | TrajectoryLine.tsx (전체 코드) | 76 |
+| | | 3.7.8 | VectorArrow.tsx (전체 코드) | 79 |
+| | | 3.7.9 | CameraController.tsx (전체 코드) | 82 |
+| | | 3.7.10 | Pitcher3D.tsx (전체 코드) | 86 |
+| | | 3.7.11 | PitchSimulator.tsx (전체 코드) | 93 |
+| | | 3.7.12 | PitchInputPanel.tsx (전체 코드) | 104 |
+| | | 3.7.13 | ResultPanel.tsx (전체 코드) | 112 |
+| | | 3.7.14 | ReplayControls.tsx (전체 코드) | 116 |
+| | | 3.7.15 | ComparisonPanel.tsx (전체 코드) | 120 |
+| | | 3.7.16 | supabaseApi.ts (전체 코드) | 124 |
+| | | 3.7.17 | types.ts (타입 정의 전체) | 129 |
+| 4 | | | 테스트 및 검증 | |
+| | 4.1 | | 단위 테스트 | 134 |
+| | | 4.1.1 | forceCalculator 테스트 (6개 케이스) | 134 |
+| | | 4.1.2 | integrator 테스트 (3개 케이스) | 139 |
+| | | 4.1.3 | simulator 테스트 (5개 케이스) | 142 |
+| | 4.2 | | 통합 테스트 | 147 |
+| | | 4.2.1 | 포심 패스트볼 궤적 검증 | 147 |
+| | | 4.2.2 | 커브볼 낙차 검증 | 148 |
+| | | 4.2.3 | 슬라이더 수평 변화 검증 | 149 |
+| | | 4.2.4 | 스트라이크 존 판정 정확도 | 150 |
+| | 4.3 | | 성능 테스트 | 151 |
+| | | 4.3.1 | 물리 계산 시간 (평균 2.5ms) | 151 |
+| | | 4.3.2 | 렌더링 성능 (30fps 목표) | 152 |
+| | | 4.3.3 | 메모리 사용량 | 153 |
+| | | 4.3.4 | 저사양 환경 테스트 결과 | 154 |
+| | 4.4 | | 디버깅 및 최적화 과정 | 155 |
+| | | 4.4.1 | 카메라 떨림 현상 해결 | 155 |
+| | | 4.4.2 | 리플레이 일시정지 버그 수정 | 156 |
+| | | 4.4.3 | 투수 애니메이션 중복 실행 방지 | 157 |
+| | | 4.4.4 | 입력 검증 및 디바운스 추가 | 158 |
+| | | 4.4.5 | React.memo 적용 | 159 |
+| | | 4.4.6 | 프로덕션 콘솔 로그 제거 | 160 |
+| 5 | | | 실행 화면 | |
+| | 5.1 | | 로그인 및 회원가입 | 161 |
+| | | 5.1.1 | 로그인 페이지 스크린샷 | 161 |
+| | | 5.1.2 | 회원가입 페이지 스크린샷 | 162 |
+| | 5.2 | | 시뮬레이터 메인 화면 | 163 |
+| | | 5.2.1 | 전체 레이아웃 | 163 |
+| | | 5.2.2 | 파라미터 입력 탭 | 164 |
+| | | 5.2.3 | 결과 탭 | 165 |
+| | | 5.2.4 | 최근 실험 탭 | 166 |
+| | | 5.2.5 | 비교 모드 탭 | 167 |
+| | 5.3 | | 3D 시각화 화면 | 168 |
+| | | 5.3.1 | 포수 시점 (Catcher View) | 168 |
+| | | 5.3.2 | 투수 시점 (Pitcher View) | 169 |
+| | | 5.3.3 | 측면 시점 (Side View) | 170 |
+| | | 5.3.4 | 추적 시점 (Follow View) | 171 |
+| | | 5.3.5 | 자유 시점 (Free View) | 172 |
+| | 5.4 | | 리플레이 및 분석 | 173 |
+| | | 5.4.1 | 리플레이 컨트롤 UI | 173 |
+| | | 5.4.2 | 슬로우 모션 (0.25x ~ 2x) | 174 |
+| | | 5.4.3 | 힘 벡터 시각화 | 175 |
+| | 5.5 | | 비교 모드 실행 | 176 |
+| | | 5.5.1 | 2개 궤적 동시 표시 | 176 |
+| | | 5.5.2 | 비교 결과 테이블 | 177 |
+| 6 | | | 설치 및 실행 방법 | |
+| | 6.1 | | 개발 환경 설정 | 178 |
+| | | 6.1.1 | Node.js 20.11.0 설치 | 178 |
+| | | 6.1.2 | 프로젝트 클론 및 의존성 설치 | 178 |
+| | | 6.1.3 | 환경 변수 설정 (.env 파일) | 179 |
+| | 6.2 | | 로컬 실행 | 180 |
+| | | 6.2.1 | 개발 서버 실행 (npm run dev) | 180 |
+| | | 6.2.2 | 프로덕션 빌드 (npm run build) | 181 |
+| | 6.3 | | Supabase 설정 | 182 |
+| | | 6.3.1 | 프로젝트 생성 및 데이터베이스 마이그레이션 | 182 |
+| | | 6.3.2 | Auth 설정 | 183 |
+| | | 6.3.3 | RLS 정책 적용 | 184 |
+| 7 | | | 결론 | |
+| | 7.1 | | 프로젝트 성과 | 185 |
+| | | 7.1.1 | 주요 구현 성과 | 185 |
+| | | 7.1.2 | 기술적 성과 | 186 |
+| | | 7.1.3 | 성능 목표 달성 | 187 |
+| | 7.2 | | 한계점 및 개선 방향 | 188 |
+| | | 7.2.1 | 현재 한계점 | 188 |
+| | | 7.2.2 | 향후 개선 계획 | 189 |
+| | 7.3 | | 향후 확장 계획 | 190 |
+| | | 7.3.1 | 2차 시나리오 (책상 중력 게임) | 190 |
+| | | 7.3.2 | 교사-학생 과제 기능 | 191 |
+| | | 7.3.3 | 다국어 지원 | 192 |
+| 부록 | | | | |
+| | I | | 작품 사진 | 193 |
+| | II | | 작품 포스터 | 197 |
+| | III | | 소스 코드 상세 (나머지 파일) | 198 |
+
+================================================================================
+1. 작품 개요
+================================================================================
+
+1.1 작품 개요
+
+1.1.1 프로젝트명 및 개발 기간
+
+프로젝트명: 교육용 3D 물리 시뮬레이터 (야구 투구 시뮬레이터)
+개발 기간: 2024년 9월 ~ 2024년 11월 (3개월)
+개발 인원: 1명
+
+1.1.2 프로젝트 요약
+
+본 프로젝트는 물리 법칙을 직관적으로 이해할 수 있도록 돕는 확장 가능한 웹 기반 3D 물리 시뮬레이터입니다. 1차 모듈로 야구 투구 시뮬레이터를 구현하였으며, 중력, 항력, 마그누스 효과 등 실제 물리 법칙을 3D 시각화로 표현합니다.
+
+사용자는 15개의 파라미터(공 물성, 투구 조건, 환경 변수)를 직접 입력하여 실시간으로 시뮬레이션 결과를 확인할 수 있습니다. 또한 리플레이 기능, 슬로우 모션, 힘 벡터 시각화, 비교 모드 등 다양한 분석 도구를 제공하여 물리 법칙의 직관적 이해를 돕습니다.
+
+주요 특징:
+- 확장 가능한 모듈식 아키텍처 (신규 시나리오 추가 용이)
+- 실시간 3D 시각화 (Three.js, WebGL 2.0)
+- 정확한 물리 계산 (RK4 적분, 마그누스 효과)
+- 블렌더 3D 모델 (투수 애니메이션 동기화)
+- 저사양 PC 최적화 (Intel 9세대 CPU급 30fps 목표)
+- 사용자 인증 및 실험 저장/비교 기능
+
+
+1.2 작품 선정 배경
+
+1.2.1 교육적 필요성
+
+물리 법칙은 고등학교 및 대학교 교육과정에서 중요한 부분을 차지하지만, 추상적인 개념으로 인해 학습자의 이해에 어려움이 있습니다. 특히 포물선 운동, 마그누스 효과와 같은 복잡한 물리 현상은 이론만으로는 직관적인 이해가 어렵습니다.
+
+시각화를 통한 물리 법칙의 직관적 이해는 학습 효과를 크게 높일 수 있습니다. 특히 3D 시각화는 2D 그래프나 수식보다 훨씬 직관적이며, 실시간 파라미터 조정을 통해 인과관계를 즉시 확인할 수 있습니다.
+
+본 프로젝트는 이러한 교육적 필요성을 충족하기 위해 야구 투구라는 친숙한 소재를 선택하였으며, 중력, 항력, 마그누스 효과 등 고등학교 물리 II 수준의 법칙을 체험할 수 있도록 설계되었습니다.
+
+1.2.2 기존 학습 방법의 한계
+
+전통적인 물리 교육 방법은 다음과 같은 한계점을 가지고 있습니다:
+
+(1) 이론 중심 수업의 낮은 흥미도
+교과서와 칠판 위주의 수업은 학습자의 흥미를 유발하기 어렵습니다. 특히 물리 법칙은 수식으로 표현되기 때문에 수학적 배경이 부족한 학습자는 이해에 큰 어려움을 겪습니다.
+
+(2) 실험 장비 구축의 비용 및 공간 제약
+실제 물리 실험을 위해서는 고가의 장비와 넓은 공간이 필요합니다. 특히 야구 투구 실험의 경우 고속 카메라, 레이더 장비(TrackMan, Rapsodo 등)가 필요하며, 이는 일반 교육 기관에서 구축하기 어렵습니다.
+
+(3) 안전 문제
+실제 야구공(141-149g, 73.0mm)을 사용한 실험은 안전상의 위험이 있으며, 고속(30-40 m/s)으로 투구된 공은 부상을 유발할 수 있습니다.
+
+(4) 파라미터 조정의 어려움
+실제 실험에서는 중력, 공기 밀도, 공의 질량 등을 자유롭게 조정할 수 없습니다. 반면 시뮬레이터는 가상 환경에서 모든 파라미터를 자유롭게 조정할 수 있어 물리 법칙의 영향을 명확히 이해할 수 있습니다.
+
+본 프로젝트는 이러한 한계를 극복하기 위해 웹 기반 시뮬레이터를 개발하였습니다. 별도의 장비 없이 웹 브라우저만으로 접근 가능하며, 안전하고 비용 효율적으로 물리 법칙을 체험할 수 있습니다.
+
+1.2.3 프로젝트 목표
+
+본 프로젝트는 다음과 같은 세 가지 목표를 가지고 개발되었습니다:
+
+(1) 교육자를 위한 목표
+- 수업 자료로 활용 가능한 직관적인 시각화 도구 제공
+- 학습자의 흥미를 유발할 수 있는 인터랙티브 콘텐츠 제공
+- 실험 결과를 저장하고 비교할 수 있는 분석 도구 제공
+
+(2) 학습자를 위한 목표
+- 실시간 파라미터 조정을 통한 물리 법칙의 인과관계 체험
+- 3D 시각화를 통한 직관적인 이해
+- 리플레이 및 슬로우 모션을 통한 상세 분석
+
+(3) 물리 시뮬레이션 관심 사용자를 위한 목표
+- 정확한 물리 계산 엔진 제공 (RK4 적분, 마그누스 효과)
+- 확장 가능한 아키텍처 (신규 시나리오 추가 용이)
+- 오픈소스 공개를 통한 커뮤니티 기여
+
+
+1.3 유사 시스템 분석
+
+1.3.1 기존 물리 시뮬레이션 도구
+
+(1) PhET Interactive Simulations (콜로라도 대학교)
+PhET는 HTML5 기반의 물리 시뮬레이션 플랫폼으로, 다양한 물리 법칙을 시각화하는 도구를 제공합니다. 포물선 운동, 에너지 보존 등 기초 물리 법칙을 중심으로 구성되어 있으며, 교육 현장에서 널리 사용되고 있습니다.
+
+장점:
+- 다양한 물리 법칙 커버
+- 교육 현장 검증 완료
+- 무료 및 오픈소스
+
+단점:
+- 2D 시각화 중심 (3D 지원 제한적)
+- 고급 물리 법칙(마그누스 효과) 부재
+- 확장성 제한 (신규 시나리오 추가 어려움)
+
+(2) Physics Classroom 웹 시뮬레이터
+Physics Classroom은 물리 교육 웹사이트로, 간단한 시뮬레이션 도구를 제공합니다. 주로 교과서 보조 자료로 사용되며, 기초 물리 법칙 중심입니다.
+
+장점:
+- 교과서와 연계된 설명
+- 간단한 UI
+
+단점:
+- 시각화 품질 낮음
+- 파라미터 조정 제한적
+- 고급 기능 부재
+
+1.3.2 상용 야구 분석 도구
+
+(1) Rapsodo Baseball
+Rapsodo는 레이더 기반의 야구 분석 장비로, 실제 투구 데이터를 측정합니다. 속도, 회전수, 궤적 등을 실시간으로 분석할 수 있으며, 프로 야구팀 및 훈련 센터에서 사용됩니다.
+
+장점:
+- 실제 데이터 측정
+- 높은 정확도
+
+단점:
+- 고가 (장비 비용 약 3,000달러)
+- 교육용으로 부적합 (물리 법칙 학습 목적 아님)
+- 파라미터 조정 불가 (실제 환경만 측정)
+
+(2) TrackMan Baseball
+TrackMan은 도플러 레이더 기반의 야구 분석 장비로, MLB(메이저리그)에서 공식 사용하는 시스템입니다. 공의 3D 궤적, 속도, 회전축 등을 측정합니다.
+
+장점:
+- 최고 수준의 정확도
+- 3D 궤적 시각화
+
+단점:
+- 매우 고가 (장비 비용 약 20,000달러 이상)
+- 교육용으로 부적합
+- 시뮬레이션 기능 없음 (측정만 가능)
+
+1.3.3 차별화 포인트
+
+본 프로젝트는 기존 시스템 대비 다음과 같은 차별화 포인트를 가지고 있습니다:
+
+(1) 확장 가능한 모듈식 아키텍처
+기존 시뮬레이터는 특정 물리 법칙에 종속된 구조로 설계되어 있어 신규 시나리오 추가가 어렵습니다. 본 프로젝트는 BaseSimulator 추상 클래스와 Generic 타입 시스템을 활용하여 높은 코드 재사용성을 제공합니다. 신규 시나리오 추가 시 약 30분 내에 기본 구조를 구축할 수 있습니다.
+
+(2) 저사양 PC 최적화
+PhET 등 기존 시뮬레이터는 성능 최적화가 제한적이며, 저사양 환경에서는 프레임 드롭이 발생합니다. 본 프로젝트는 Intel 9세대 CPU급 환경에서 30fps 이상을 목표로 설계되었으며, 다음과 같은 최적화 기법을 적용하였습니다:
+- React.memo를 통한 불필요한 리렌더링 방지
+- 동적 dt 조정 (공 속도에 따라 적분 간격 자동 조정)
+- 입력 디바운싱 (300ms)
+- 그래픽 설정 자유 조정 (DPR, 폴리곤 수, FPS)
+
+(3) 힘 벡터 시각화
+기존 시뮬레이터는 궤적만 표시하지만, 본 프로젝트는 중력, 항력, 마그누스 힘을 3D 화살표로 실시간 표시합니다. 이를 통해 학습자는 각 힘이 공의 궤적에 미치는 영향을 직관적으로 이해할 수 있습니다.
+
+(4) 비교 모드
+2개의 실험 결과를 동시에 표시하고, 계측값 차이를 테이블로 제공합니다. 이를 통해 파라미터 변화가 궤적에 미치는 영향을 명확히 비교할 수 있습니다.
+
+(5) 블렌더 3D 모델 및 투수 애니메이션 동기화
+기존 시뮬레이터는 단순한 도형으로 투수를 표현하지만, 본 프로젝트는 블렌더에서 제작한 846KB FBX 모델을 사용하며, 119프레임 투구 애니메이션을 제공합니다. 48프레임 시점에서 공이 릴리스되도록 정확히 동기화되어 있으며, 좌완/우완 자동 미러링을 지원합니다.
+
+(6) 무료 및 웹 기반
+TrackMan, Rapsodo 등 상용 도구는 고가의 비용이 필요하지만, 본 프로젝트는 무료이며 웹 브라우저만으로 접근 가능합니다. 별도의 설치나 장비 없이 즉시 사용할 수 있습니다.
+
+
+1.4 구현 범위 및 목표
+
+1.4.1 구현 범위 (In-Scope)
+
+본 프로젝트는 다음과 같은 기능을 구현 범위로 설정하였습니다:
+
+(1) 야구 투구 시나리오 (1차 모듈)
+- 중력, 항력, 마그누스 효과를 포함한 물리 계산
+- 15개 파라미터 직접 입력 UI
+  공 물성 (4개): 질량, 반지름, 항력계수, 양력계수
+  투구 조건 (7개): 속도, 수평각도, 수직각도, 회전 X/Y/Z, 릴리스 포인트 X/Y/Z
+  환경 변수 (4개): 중력, 온도, 기압, 습도
+
+(2) 3D 시각화 (Three.js, WebGL 2.0)
+- 실시간 3D 궤적 렌더링
+- 5개 카메라 프리셋 (포수 시점, 투수 시점, 측면 시점, 추적 시점, 자유 시점)
+- 힘 벡터 시각화 (중력, 항력, 마그누스 힘)
+- 블렌더 3D 모델 (투수 애니메이션 동기화)
+- 야구장 렌더링 (마운드, 홈플레이트, 스트라이크 존)
+
+(3) 리플레이 및 슬로우 모션
+- 리플레이 컨트롤 UI (Play/Pause, 진행률 슬라이더)
+- 재생 속도 조절 (0.25x, 0.5x, 1x, 2x)
+- 스페이스바 일시정지/재생
+- 키보드 단축키 (방향키, [], ,.)
+
+(4) 사용자 인증 (Supabase Auth)
+- 이메일/비밀번호 인증
+- JWT 기반 세션 관리
+- 프로필 자동 생성 (username, role)
+
+(5) 실험 저장 및 비교 모드
+- 실험 저장 (이름, 파라미터, 결과)
+- 최근 실험 목록 (최신순 20개)
+- 실험 불러오기 (파라미터 자동 입력)
+- 비교 모드 (2개 궤적 동시 표시, 계측값 차이 표시)
+
+(6) 힘 벡터 시각화
+- 중력, 항력, 마그누스 힘을 3D 화살표로 표시
+- 힘의 크기에 비례한 화살표 길이
+- 힘의 방향 표시
+
+(7) 그래픽 설정 및 디버그
+- 그래픽 설정 (DPR, 폴리곤 수, FPS, 시야각, 안티앨리어싱)
+- 디버그 패널 (물리 계산 시간, FPS, 메모리 사용량)
+- 성능 모니터링
+
+1.4.2 제외 범위 (Out-of-Scope)
+
+본 프로젝트는 다음과 같은 기능을 제외 범위로 설정하였습니다:
+
+(1) 타격 시뮬레이션
+투구 후 타격 시뮬레이션은 매우 복잡한 물리 계산이 필요하며, 본 프로젝트의 범위를 벗어납니다. 타격 시뮬레이션은 향후 2차 모듈로 고려 가능합니다.
+
+(2) 실시간 멀티플레이어
+실시간 멀티플레이어 기능은 Supabase Realtime API를 활용하여 구현 가능하지만, 1차 모듈에서는 제외하였습니다. 향후 책상 중력 게임 등 협업 시나리오에서 활용 예정입니다.
+
+(3) 모바일 앱
+웹 기반 반응형 디자인을 지원하지만, 네이티브 모바일 앱은 개발하지 않았습니다. PWA(Progressive Web App) 형태로 모바일 지원을 고려할 수 있습니다.
+
+(4) 관리자 대시보드
+교사-학생 과제 관리, 학습 진행도 추적 등 관리자 기능은 Phase 4 이후로 보류되었습니다. 현재는 개인 사용자 중심의 기능만 제공합니다.
+
+(5) 미니게임 및 리더보드
+미니게임 및 리더보드 기능은 2025년 11월 5일 기준으로 폐기되었습니다. 교육 목적에 집중하기 위해 게임 요소는 제외하였습니다.
+
+1.4.3 성능 목표
+
+본 프로젝트는 다음과 같은 성능 목표를 설정하였습니다:
+
+(1) 저사양 PC 30fps 이상
+Intel 9세대 CPU급 환경에서 30fps 이상을 목표로 설정하였습니다. 이를 위해 다음과 같은 최적화 기법을 적용하였습니다:
+- React.memo를 통한 불필요한 리렌더링 방지
+- 동적 dt 조정 (공 속도에 따라 적분 간격 자동 조정)
+- 입력 디바운싱 (300ms)
+- 그래픽 설정 자유 조정 (DPR, 폴리곤 수, FPS)
+
+(2) 초기 로딩 3초 미만
+Vite 번들러를 활용하여 초기 로딩 시간을 최소화하였습니다. 코드 스플리팅, Tree Shaking 등을 적용하여 번들 크기를 최적화하였습니다.
+
+(3) 시뮬레이션 계산 100ms 미만
+물리 계산은 RK4 적분을 사용하지만, 평균 2.5ms 내에 완료되도록 최적화하였습니다. 테스트 결과 1.6ms ~ 4.7ms 범위에서 계산이 완료되었습니다.
+
+(4) 모듈식 설계로 높은 코드 재사용성
+BaseSimulator 추상 클래스와 Generic 타입 시스템을 활용하여 신규 시나리오 추가 시 약 30분 내에 기본 구조를 구축할 수 있습니다.
+
+
+1.5 개발 환경
+
+1.5.1 프론트엔드
+
+프론트엔드는 다음과 같은 기술 스택으로 구성되었습니다:
+
+(1) 언어
+- TypeScript 5.2.2
+  정적 타입 검사를 통한 코드 안정성 확보
+  Generic 타입 시스템을 활용한 확장 가능한 아키텍처
+
+(2) 프레임워크
+- React 18.2.0
+  선언적 UI 개발
+  Context API를 활용한 상태 관리
+- Three.js 0.158.0
+  WebGL 기반 3D 렌더링
+  FBX 모델 로더, 애니메이션 믹서
+
+(3) 빌드 도구
+- Vite 5.0.0
+  빠른 개발 서버 (HMR)
+  최적화된 프로덕션 빌드
+  코드 스플리팅, Tree Shaking
+
+(4) 상태 관리
+- React Context API
+  SimulationContext (파라미터, 결과, 리플레이)
+  ComparisonContext (비교 모드)
+  GraphicsContext (그래픽 설정)
+
+(5) 스타일링
+- styled-components 6.1.13
+  CSS-in-JS
+  테마 시스템 (색상, 타이포그래피, 간격)
+
+(6) 라우팅
+- React Router 6.28.0
+  클라이언트 사이드 라우팅
+  Protected Route (로그인 가드)
+
+1.5.2 백엔드 및 인프라
+
+백엔드는 BaaS(Backend as a Service) 방식으로 구축되었습니다:
+
+(1) BaaS
+- Supabase (PostgreSQL 15)
+  PostgreSQL 기반 오픈소스 BaaS
+  RESTful API 자동 생성
+  실시간 데이터 동기화 (Realtime API)
+
+(2) 인증
+- Supabase Auth
+  이메일/비밀번호 인증
+  JWT 기반 세션 관리
+  Auth 트리거 (프로필 자동 생성)
+
+(3) 데이터베이스
+- PostgreSQL 15
+  profiles 테이블 (사용자 프로필)
+  experiments 테이블 (실험 저장, JSONB)
+  RLS (Row Level Security) 정책
+
+(4) 스토리지
+- Supabase Storage
+  3D 모델 파일 (FBX) 저장
+  이미지 파일 저장
+
+1.5.3 협업 도구
+
+개발 과정에서 다음과 같은 협업 도구를 사용하였습니다:
+
+(1) 버전 관리
+- Git/GitHub
+  Git-flow 전략 (main, dev 브랜치)
+  커밋 메시지 규칙 (Conventional Commits)
+
+(2) 코드 에디터
+- VS Code
+  TypeScript 언어 서버
+  ESLint, Prettier 통합
+  확장 프로그램 (GitLens, React Developer Tools)
+
+(3) 문서화
+- CLAUDE.md (프로젝트 지침)
+- 작업목록.md (작업 진행 상황)
+- 프로젝트 설계 명세서 (설계 문서)
+- 구현 결과 보고서 (구현 상세)
+
+
+================================================================================
+2. 관련 기술
+================================================================================
+
+2.1 Three.js 및 WebGL
+
+2.1.1 Three.js 개요
+
+Three.js는 WebGL을 추상화한 JavaScript 3D 그래픽 라이브러리로, 복잡한 WebGL API를 간소화하여 웹 브라우저에서 3D 그래픽을 쉽게 구현할 수 있도록 합니다. 본 프로젝트에서는 Three.js 0.158.0 버전을 사용하였으며, React 통합을 위해 다음과 같은 라이브러리를 함께 사용하였습니다:
+
+(1) @react-three/fiber
+React Three Fiber는 Three.js를 React 컴포넌트로 래핑한 라이브러리입니다. 선언적 방식으로 3D 씬을 구성할 수 있으며, React의 상태 관리 및 라이프사이클과 자연스럽게 통합됩니다.
+
+주요 특징:
+- JSX 문법으로 3D 씬 구성
+- React 상태 관리 통합
+- useFrame 훅으로 애니메이션 루프 제어
+- 성능 최적화 (자동 렌더링 최적화)
+
+(2) @react-three/drei
+Drei는 React Three Fiber를 위한 유틸리티 컴포넌트 라이브러리입니다. 카메라 컨트롤, 조명, 헬퍼 등 자주 사용되는 기능을 컴포넌트로 제공합니다.
+
+주요 사용 컴포넌트:
+- OrbitControls: 마우스 기반 카메라 컨트롤
+- Grid: 그리드 헬퍼
+- Environment: 환경 조명
+
+2.1.2 WebGL 2.0 렌더링 파이프라인
+
+WebGL 2.0은 GPU 가속 3D 그래픽을 웹 브라우저에서 구현하기 위한 JavaScript API입니다. 본 프로젝트에서는 다음과 같은 렌더링 파이프라인을 구성하였습니다:
+
+(1) Canvas 설정
+Canvas는 3D 씬을 렌더링하는 HTML5 요소입니다. 다음과 같은 설정을 적용하였습니다:
+
+- FOV (Field of View): 50도
+  시야각을 50도로 설정하여 자연스러운 원근감을 제공합니다. 그래픽 설정 패널에서 40~75도 범위로 조정 가능합니다.
+
+- 카메라 위치: [5, 3, 15]
+  카메라 프리셋별로 다른 위치를 사용하며, 기본 위치는 (5, 3, 15)입니다.
+
+- DPR (Device Pixel Ratio): 1.0~2.0
+  픽셀 밀도를 조정하여 성능과 화질의 균형을 맞춥니다. 저사양 PC에서는 1.0, 고사양 PC에서는 2.0을 권장합니다.
+
+(2) 조명 시스템
+3D 씬의 사실감을 높이기 위해 다음과 같은 조명을 구성하였습니다:
+
+- Ambient Light: 강도 0.4
+  전역 조명으로, 모든 객체에 균일하게 적용됩니다.
+
+- Directional Light: 강도 1.2, 위치 [0, 30, -5]
+  태양광과 유사한 평행 광원으로, 그림자를 생성합니다.
+
+- Point Light: 투수 위치에 추가 조명
+  투수 모델이 어둡지 않도록 보조 조명을 제공합니다.
+
+(3) 그림자 렌더링
+그림자는 3D 씬의 사실감을 크게 향상시키지만, 성능에 영향을 미칩니다. 본 프로젝트에서는 다음과 같은 설정을 사용하였습니다:
+
+- Shadow Map 해상도: 1024x1024
+  성능과 품질의 균형을 위해 1024x1024 해상도를 사용하였습니다. 고사양 PC에서는 2048x2048도 가능하지만, 저사양 최적화를 위해 1024를 기본값으로 설정하였습니다.
+
+- castShadow, receiveShadow
+  공, 투수, 야구장 등 주요 객체에 그림자 설정을 적용하였습니다.
+
+2.1.3 FBX 모델 로더
+
+FBX는 Autodesk가 개발한 3D 모델 포맷으로, 블렌더에서 제작한 모델을 웹에서 사용하기 위해 FBX 형식으로 익스포트하였습니다. Three.js는 FBXLoader를 통해 FBX 파일을 로드할 수 있습니다.
+
+(1) FBXLoader (three-stdlib)
+three-stdlib은 Three.js의 확장 라이브러리로, FBXLoader를 포함한 다양한 로더를 제공합니다. 본 프로젝트에서는 다음과 같이 FBX 모델을 로드하였습니다:
+
+코드 예시 (Pitcher3D.tsx):
+```
+import { FBXLoader } from 'three-stdlib'
+
+const loader = new FBXLoader()
+loader.load('/models/pitcher.fbx', (fbx) => {
+  fbx.scale.set(0.01, 0.01, 0.01)
+  fbx.rotation.y = Math.PI
+  setModel(fbx)
+})
+```
+
+(2) 블렌더 투수 3D 모델 (846KB)
+블렌더에서 제작한 투수 모델은 846KB 크기로, 다음과 같은 특징을 가지고 있습니다:
+
+- 119프레임 투구 애니메이션 (30fps, 약 3.97초)
+- 폴리곤 수: 약 2000개 (저사양 최적화)
+- 텍스처: 없음 (단색 머티리얼 사용)
+- 본(Bone) 구조: 간단한 리깅 (팔, 다리, 몸통)
+
+(3) AnimationMixer 동기화
+AnimationMixer는 Three.js의 애니메이션 시스템으로, 모델의 애니메이션을 재생하고 제어합니다. 본 프로젝트에서는 다음과 같이 구현하였습니다:
+
+- AnimationAction: 애니메이션 클립을 재생하는 단위
+- LoopOnce 모드: 애니메이션을 한 번만 재생
+- clampWhenFinished: 애니메이션 종료 시 마지막 프레임에 고정
+- 48프레임 릴리스: 공 생성 시점과 동기화
+
+주요 코드:
+```
+const mixer = new AnimationMixer(fbx)
+const action = mixer.clipAction(fbx.animations[0])
+action.setLoop(THREE.LoopOnce, 1)
+action.clampWhenFinished = true
+action.play()
+```
+
+
+2.2 물리 엔진 수치 해석
+
+물리 엔진은 시뮬레이터의 핵심으로, 뉴턴 운동 법칙을 기반으로 공의 궤적을 계산합니다. 본 프로젝트에서는 수치 해석 기법을 활용하여 미분방정식을 풀고, 실시간으로 궤적을 생성합니다.
+
+2.2.1 수치 적분 방법
+
+공의 위치와 속도는 가속도를 적분하여 구할 수 있습니다. 그러나 해석적 해(Analytical Solution)를 구하기 어려운 경우, 수치 적분 방법을 사용합니다.
+
+(1) Euler Method (1차 방법)
+가장 간단한 수치 적분 방법으로, 다음과 같은 식으로 계산합니다:
+
+x(t + dt) = x(t) + v(t) × dt
+v(t + dt) = v(t) + a(t) × dt
+
+장점:
+- 계산량이 적음 (1회 평가)
+- 구현이 간단함
+
+단점:
+- 오차가 크고 누적됨
+- 긴 시뮬레이션에서 불안정함
+
+(2) Runge-Kutta 4차 (RK4 방법)
+RK4는 4차 정확도를 가진 수치 적분 방법으로, Euler Method보다 훨씬 정확합니다. 다음과 같은 과정으로 계산합니다:
+
+k1 = f(t, y)
+k2 = f(t + dt/2, y + k1×dt/2)
+k3 = f(t + dt/2, y + k2×dt/2)
+k4 = f(t + dt, y + k3×dt)
+y(t + dt) = y(t) + (k1 + 2×k2 + 2×k3 + k4) × dt/6
+
+장점:
+- 매우 정확함 (4차 오차)
+- 오차 누적이 적음
+- 안정적임
+
+단점:
+- 계산량이 많음 (4회 평가)
+- Euler Method보다 4배 느림
+
+본 프로젝트에서는 정확도를 우선시하여 RK4 방법을 사용하였습니다. 테스트 결과 물리 계산 시간은 평균 2.5ms로, RK4를 사용해도 성능에 문제가 없음을 확인하였습니다.
+
+2.2.2 물리력 계산
+
+공의 운동은 세 가지 힘의 합력으로 결정됩니다: 중력, 항력, 마그누스 효과
+
+(1) 중력 (Gravity Force)
+중력은 지구가 물체를 끌어당기는 힘으로, 다음과 같이 계산됩니다:
+
+F_gravity = m × g × [0, -1, 0]
+
+여기서:
+- m: 공의 질량 (kg), 기본값 0.145kg
+- g: 중력 가속도 (m/s²), 기본값 9.81 m/s²
+- [0, -1, 0]: 아래 방향 단위 벡터
+
+중력은 환경 변수로 조정 가능하며, 달(1.62 m/s²), 화성(3.71 m/s²), 지구(9.81 m/s²), 목성(24.79 m/s²) 등 다양한 환경에서 시뮬레이션할 수 있습니다.
+
+(2) 항력 (Drag Force)
+항력은 공기 저항에 의해 발생하는 힘으로, 속도의 제곱에 비례합니다:
+
+F_drag = -0.5 × ρ × C_d × A × |v|² × v̂
+
+여기서:
+- ρ: 공기 밀도 (kg/m³), 온도/기압/습도로부터 자동 계산
+- C_d: 항력 계수 (무차원), 기본값 0.3
+- A: 단면적 (m²), A = π × r²
+- |v|: 속도의 크기 (m/s)
+- v̂: 속도의 방향 단위 벡터
+
+항력은 속도가 빠를수록 급격히 증가하며, 공의 속도를 감소시킵니다. 항력 계수는 공의 표면 거칠기에 따라 달라지며, 야구공의 경우 약 0.3~0.5입니다.
+
+(3) 마그누스 효과 (Magnus Effect)
+마그누스 효과는 회전하는 공이 받는 힘으로, 회전 방향에 따라 궤적이 휘어집니다:
+
+F_magnus = 0.5 × C_L × ρ × A × |v|² × (ω × v̂)
+
+여기서:
+- C_L: 양력 계수 (무차원), 기본값 0.2
+- ω: 회전 벡터 (rad/s)
+- v̂: 속도 방향 단위 벡터
+- ω × v̂: 외적 (회전축과 속도에 수직인 방향)
+
+마그누스 효과는 다음과 같은 구종을 만듭니다:
+- 백스핀 (ω_x > 0): 공이 떠오름 (포심 패스트볼)
+- 탑스핀 (ω_x < 0): 공이 낙차 증가 (커브볼)
+- 좌회전 (ω_y > 0): 공이 1루 방향으로 휘어짐 (슬라이더)
+- 우회전 (ω_y < 0): 공이 3루 방향으로 휘어짐 (체인지업)
+
+2.2.3 공기 밀도 자동 계산
+
+공기 밀도는 온도, 기압, 습도에 따라 변합니다. 본 프로젝트에서는 이상 기체 법칙과 Magnus 공식을 사용하여 공기 밀도를 자동으로 계산합니다.
+
+(1) 이상 기체 법칙 기반 계산
+이상 기체 법칙: PV = nRT
+밀도 공식: ρ = P / (R × T)
+
+여기서:
+- P: 기압 (Pa)
+- R: 기체 상수 (J/(mol·K)), 건조 공기 287.05
+- T: 온도 (K)
+
+(2) 습도 보정 (Magnus 공식)
+습도가 높으면 공기 중 수증기가 증가하여 밀도가 감소합니다. Magnus 공식으로 포화 수증기압을 계산하고, 실제 수증기압을 구하여 밀도를 보정합니다:
+
+e_s = 611.2 × exp(17.67 × T_c / (T_c + 243.5))
+e = (humidity / 100) × e_s
+P_dry = P - e
+ρ = (P_dry / (R_dry × T)) + (e / (R_vapor × T))
+
+여기서:
+- e_s: 포화 수증기압 (Pa)
+- T_c: 섭씨 온도 (°C)
+- e: 실제 수증기압 (Pa)
+- humidity: 상대 습도 (%)
+- R_dry: 건조 공기 기체 상수 (287.05 J/(mol·K))
+- R_vapor: 수증기 기체 상수 (461.5 J/(mol·K))
+
+(3) 공기 밀도 영향
+공기 밀도가 증가하면:
+- 항력 증가 → 공의 속도 감소
+- 마그누스 효과 증가 → 궤적 변화 증가
+
+예시:
+- 해수면, 20°C, 습도 50%: ρ ≈ 1.20 kg/m³
+- 고지대 (2000m), 15°C, 습도 30%: ρ ≈ 1.00 kg/m³
+
+
+2.3 React 상태 관리
+
+본 프로젝트는 React Context API를 활용하여 전역 상태를 관리합니다. Redux, MobX 등 외부 라이브러리 대신 React 내장 기능을 사용하여 의존성을 최소화하였습니다.
+
+2.3.1 React Context API
+
+Context API는 React 16.3에서 도입된 전역 상태 관리 기능으로, props drilling 문제를 해결합니다. 본 프로젝트에서는 다음과 같은 Context를 사용합니다:
+
+(1) SimulationContext
+시뮬레이션 관련 상태를 관리하는 Context입니다:
+
+관리 상태:
+- params: 투구 파라미터 (15개)
+- result: 시뮬레이션 결과 (궤적, 계측값)
+- isSimulating: 시뮬레이션 실행 중 여부
+- isReplaying: 리플레이 재생 중 여부
+- replayTime: 리플레이 현재 시간 (초)
+- playbackSpeed: 재생 속도 (0.25x ~ 2x)
+- cameraPreset: 카메라 프리셋 (catcher, pitcher, side, follow, free)
+- performanceMetrics: 성능 측정 지표
+
+주요 액션:
+- setParams: 파라미터 업데이트 (깊은 병합 지원)
+- runSimulation: 시뮬레이션 실행
+- reset: 초기화
+- setIsReplaying: 리플레이 재생/일시정지
+- setReplayTime: 리플레이 시간 조정
+- setPlaybackSpeed: 재생 속도 조정
+- setCameraPreset: 카메라 프리셋 변경
+
+(2) ComparisonContext
+비교 모드 관련 상태를 관리하는 Context입니다:
+
+관리 상태:
+- isComparisonMode: 비교 모드 활성화 여부
+- experimentA: 첫 번째 실험 데이터
+- experimentB: 두 번째 실험 데이터
+
+주요 액션:
+- setComparisonMode: 비교 모드 토글
+- loadExperiments: 2개 실험 불러오기
+- clearComparison: 비교 모드 초기화
+
+(3) GraphicsContext
+그래픽 설정 관련 상태를 관리하는 Context입니다:
+
+관리 상태:
+- targetFps: 목표 FPS (30, 45, 60)
+- dpr: Device Pixel Ratio (1.0 ~ 2.0)
+- ballQuality: 공 폴리곤 수 (8, 16, 32)
+- trajectoryDt: 궤적 정밀도 (0.005 ~ 0.02)
+- fov: 시야각 (40 ~ 75)
+- antialiasing: 안티앨리어싱 (true/false)
+
+주요 액션:
+- setGraphicsPreset: 프리셋 적용 (저사양, 중간, 고사양)
+- updateSetting: 개별 설정 변경
+
+2.3.2 Context Factory 패턴
+
+본 프로젝트는 확장 가능한 아키텍처를 위해 Context Factory 패턴을 적용하였습니다. 이는 신규 시나리오 추가 시 Context를 쉽게 생성할 수 있도록 합니다.
+
+구조:
+- BaseSimulationContext<TParams, TResult>: Generic 타입 시스템
+- 시나리오별 Context: PitchSimulationContext, GravityGameContext 등
+
+장점:
+- 코드 중복 최소화
+- 타입 안전성 확보
+- 신규 시나리오 추가 용이
+
+예시 코드:
+```
+interface SimulationContextType<TParams, TResult> {
+  params: TParams
+  result: TResult | null
+  isSimulating: boolean
+  setParams: (params: Partial<TParams>) => void
+  runSimulation: () => void
+  reset: () => void
+}
+```
+
+
+2.4 Supabase Auth 및 RLS
+
+본 프로젝트는 백엔드 서버 없이 Supabase BaaS를 활용하여 인증 및 데이터베이스 기능을 구현하였습니다.
+
+2.4.1 Supabase Authentication
+
+Supabase Auth는 PostgreSQL 기반의 인증 시스템으로, 다음과 같은 기능을 제공합니다:
+
+(1) 이메일/비밀번호 인증
+사용자는 이메일과 비밀번호로 회원가입 및 로그인할 수 있습니다:
+
+- 회원가입: supabase.auth.signUp({ email, password, data: { username, role } })
+- 로그인: supabase.auth.signInWithPassword({ email, password })
+- 로그아웃: supabase.auth.signOut()
+
+(2) JWT 기반 세션 관리
+Supabase는 JWT(JSON Web Token)를 사용하여 세션을 관리합니다:
+
+- Access Token: 1시간 유효
+- Refresh Token: 자동 갱신
+- 클라이언트 사이드 세션 저장 (LocalStorage)
+
+(3) Auth 트리거 (프로필 자동 생성)
+회원가입 시 PostgreSQL 트리거를 사용하여 프로필을 자동으로 생성합니다:
+
+SQL 코드:
+```
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, username, role)
+  VALUES (
+    NEW.id,
+    NEW.raw_user_meta_data->>'username',
+    NEW.raw_user_meta_data->>'role'
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+```
+
+2.4.2 Row Level Security (RLS)
+
+RLS는 PostgreSQL의 보안 기능으로, 행(Row) 수준에서 접근 제어를 수행합니다. 본 프로젝트에서는 다음과 같은 정책을 적용하였습니다:
+
+(1) profiles 테이블 RLS 정책
+```
+-- 자신의 프로필만 조회 가능
+CREATE POLICY "Users can view own profile"
+ON profiles FOR SELECT
+USING (auth.uid() = id);
+
+-- 자신의 프로필만 수정 가능
+CREATE POLICY "Users can update own profile"
+ON profiles FOR UPDATE
+USING (auth.uid() = id);
+```
+
+(2) experiments 테이블 RLS 정책
+```
+-- 자신의 실험만 조회 가능
+CREATE POLICY "Users can view own experiments"
+ON experiments FOR SELECT
+USING (auth.uid() = user_id);
+
+-- 자신의 실험만 삽입 가능
+CREATE POLICY "Users can insert own experiments"
+ON experiments FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- 자신의 실험만 삭제 가능
+CREATE POLICY "Users can delete own experiments"
+ON experiments FOR DELETE
+USING (auth.uid() = user_id);
+```
+
+RLS의 장점:
+- 백엔드 서버 없이 데이터 격리
+- PostgreSQL 수준에서 보안 적용
+- SQL 인젝션 방지
+- 코드 단순화
+
+2.4.3 Realtime API
+
+Supabase Realtime은 PostgreSQL 변경사항을 WebSocket으로 실시간 전송하는 기능입니다. 본 프로젝트에서는 1차 모듈에서는 사용하지 않았지만, 향후 협업 게임 시나리오(책상 중력 게임)에서 활용 예정입니다.
+
+주요 기능:
+- INSERT, UPDATE, DELETE 이벤트 구독
+- 실시간 데이터 동기화
+- 멀티플레이어 게임 구현 가능
+
+예시 코드:
+```
+const channel = supabase
+  .channel('experiments')
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'experiments'
+  }, (payload) => {
+    console.log('Change received!', payload)
+  })
+  .subscribe()
+```
+
+
+2.5 TypeScript 타입 시스템
+
+본 프로젝트는 TypeScript를 사용하여 타입 안전성을 확보하고, Generic 타입 시스템을 활용하여 확장 가능한 아키텍처를 구현하였습니다.
+
+2.5.1 Generic 타입 시스템
+
+Generic은 타입을 매개변수화하여 재사용 가능한 컴포넌트를 만드는 기법입니다. 본 프로젝트에서는 BaseSimulator 추상 클래스에 Generic을 적용하였습니다:
+
+BaseSimulator 정의:
+```
+abstract class BaseSimulator<TParams, TResult> {
+  protected params: TParams
+
+  constructor(params: TParams) {
+    this.params = params
+  }
+
+  abstract run(): TResult
+  abstract validate(): boolean
+}
+```
+
+PitchSimulator 구현:
+```
+class PitchSimulator extends BaseSimulator<PitchParameters, SimulationResult> {
+  run(): SimulationResult {
+    // 물리 계산 로직
+  }
+
+  validate(): boolean {
+    // 파라미터 검증 로직
+  }
+}
+```
+
+장점:
+- 타입 안전성: 컴파일 시점에 타입 오류 검출
+- 코드 재사용: 신규 시나리오 추가 시 BaseSimulator 상속
+- 확장성: TParams, TResult를 자유롭게 정의
+
+2.5.2 확장 가능한 아키텍처
+
+본 프로젝트는 모듈식 설계를 통해 높은 코드 재사용성을 제공합니다. 신규 시나리오 추가 시 다음과 같은 과정으로 진행됩니다:
+
+(1) 타입 정의 (약 5분)
+```
+interface GravityGameParameters {
+  planets: Planet[]
+  spacecraft: Spacecraft
+  target: Vector3
+}
+
+interface GravityGameResult {
+  trajectory: Vector3[]
+  success: boolean
+  fuelUsed: number
+}
+```
+
+(2) Simulator 구현 (약 15분)
+```
+class GravityGameSimulator extends BaseSimulator<GravityGameParameters, GravityGameResult> {
+  run(): GravityGameResult {
+    // 중력 계산 로직
+  }
+}
+```
+
+(3) UI 컴포넌트 구현 (약 10분)
+```
+function GravityGameSimulator() {
+  const { params, result, runSimulation } = useSimulation<GravityGameParameters, GravityGameResult>()
+  // UI 렌더링
+}
+```
+
+총 소요 시간: 약 30분
+
+디렉토리 구조:
+```
+src/
+├── core/           # 재사용 가능한 공통 모듈
+│   ├── physics/    # BaseSimulator, PhysicsEngine
+│   ├── renderer/   # Scene3D, CameraController
+│   └── ui/         # ResultPanel, ReplayControls
+├── scenarios/      # 시나리오별 독립 구현
+│   ├── pitch/      # 야구 투구
+│   └── gravity/    # 중력 게임 (미구현)
+```
+
+
+2.6 시스템 아키텍처
+
+2.6.1 클라이언트-서버 아키텍처 (BaaS)
+
+본 프로젝트는 클라이언트-서버 아키텍처를 채택하였으며, 서버는 Supabase BaaS로 구성됩니다.
+
+계층 구조:
+(1) 프레젠테이션 계층 (Presentation Layer)
+- React 18.2.0 + TypeScript 5.2.2
+- Three.js 0.158.0 (3D 렌더링)
+- styled-components 6.1.13 (스타일링)
+
+(2) 비즈니스 로직 계층 (Business Logic Layer)
+- 클라이언트 사이드 Physics Engine
+- 물리 계산 (중력, 항력, 마그누스 효과)
+- RK4 수치 적분
+
+(3) 데이터 계층 (Data Layer)
+- Supabase BaaS (PostgreSQL 15)
+- Supabase Auth (JWT 인증)
+- RLS (Row Level Security)
+
+특징:
+- 클라이언트 중심 계산: 물리 계산 및 렌더링은 모두 클라이언트에서 처리
+- 서버리스 백엔드: Node.js/Express 서버 없이 BaaS로 구현
+- 저렴한 운영 비용: 서버 인프라 불필요
+
+2.6.2 디렉토리 구조
+
+본 프로젝트는 모듈식 디렉토리 구조로 설계되어 있습니다:
+
+```
+src/
+├── core/               # 재사용 가능한 공통 모듈
+│   ├── physics/        # 물리 엔진
+│   │   ├── PhysicsEngine.ts
+│   │   ├── forceCalculator.ts
+│   │   ├── integrator.ts
+│   │   └── simulator.ts
+│   ├── renderer/       # 3D 렌더링
+│   │   ├── Scene3D.tsx
+│   │   ├── CameraController.tsx
+│   │   └── Ball3D.tsx
+│   └── ui/             # 핵심 UI 컴포넌트
+│       ├── ResultPanel.tsx
+│       ├── ReplayControls.tsx
+│       └── CameraPresetButtons.tsx
+├── scenarios/          # 시나리오별 독립 구현
+│   └── pitch/          # 야구 투구 시나리오
+│       ├── PitchSimulator.tsx
+│       ├── PitchInputPanel.tsx
+│       ├── Pitcher3D.tsx
+│       ├── Ball3D.tsx
+│       ├── TrajectoryLine.tsx
+│       └── Field.tsx
+├── components/         # 공통 UI 컴포넌트
+│   └── common/         # 재사용 컴포넌트
+│       ├── Button.tsx
+│       ├── Input.tsx
+│       ├── Card.tsx
+│       ├── Section.tsx
+│       └── FormField.tsx
+├── styles/             # 디자인 시스템
+│   ├── theme.ts        # 색상, 타이포그래피, 애니메이션
+│   └── GlobalStyles.tsx
+├── contexts/           # 전역 상태 관리
+│   ├── SimulationContext.tsx
+│   ├── ComparisonContext.tsx
+│   └── GraphicsContext.tsx
+├── lib/                # 외부 라이브러리 설정
+│   ├── supabase.ts
+│   └── supabaseApi.ts
+├── pages/              # 페이지 컴포넌트
+│   ├── LoginPage.tsx
+│   └── SignupPage.tsx
+├── types/              # 전역 타입 정의
+│   └── index.ts
+└── utils/              # 유틸리티 함수
+    ├── recentExperiments.ts
+    └── validation.ts
+```
+
+2.6.3 컴포넌트 계층도
+
+본 프로젝트의 React 컴포넌트는 다음과 같은 계층 구조로 구성됩니다:
+
+```
+App
+├── Router
+│   ├── LoginPage
+│   ├── SignupPage
+│   └── ProtectedRoute
+│       └── PitchSimulator
+│           ├── TopNavigationBar
+│           │   ├── BackButton
+│           │   ├── HelpModal
+│           │   └── AccountModal
+│           ├── Scene3D (3D 렌더링)
+│           │   ├── Ball3D
+│           │   ├── TrajectoryLine
+│           │   ├── Field
+│           │   ├── Grid
+│           │   ├── Pitcher3D
+│           │   ├── ForceVectors3D
+│           │   └── CameraController
+│           └── TabContainer (우측 패널)
+│               ├── PitchInputPanel (파라미터 입력)
+│               │   ├── Section (공 물성)
+│               │   ├── Section (투구 조건)
+│               │   └── Section (환경 변수)
+│               ├── ResultPanel (결과)
+│               │   ├── CameraPresetButtons
+│               │   ├── ReplayControls
+│               │   └── ForceVectorToggle
+│               ├── RecentExperimentsPanel (최근 실험)
+│               │   └── ExperimentDetailModal
+│               ├── ComparisonPanel (비교 모드)
+│               │   ├── ExperimentSelector
+│               │   └── ComparisonResultTable
+│               ├── GraphicsSettingsPanel (그래픽)
+│               └── DebugPanel (디버그)
+```
+
+
+2.7 데이터베이스 설계
+
+2.7.1 ERD (Entity-Relationship Diagram)
+
+본 프로젝트의 데이터베이스는 다음과 같은 ERD로 구성됩니다:
+
+엔티티:
+(1) profiles (사용자 프로필)
+- id: UUID (PK, auth.users.id 참조)
+- username: TEXT (사용자명, UNIQUE)
+- role: TEXT (역할: 'student' 또는 'teacher')
+- created_at: TIMESTAMP (생성 시각)
+
+(2) experiments (실험 데이터)
+- id: UUID (PK, 자동 생성)
+- user_id: UUID (FK, profiles.id 참조)
+- scenario: TEXT (시나리오 이름, 예: 'pitch')
+- name: TEXT (실험 이름)
+- data: JSONB (파라미터 및 결과, JSON 형식)
+- created_at: TIMESTAMP (생성 시각)
+- updated_at: TIMESTAMP (수정 시각)
+
+관계:
+- profiles (1) --- (N) experiments
+  한 사용자는 여러 실험을 가질 수 있음
+
+2.7.2 테이블 스키마
+
+(1) profiles 테이블
+```sql
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  username TEXT UNIQUE NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('student', 'teacher')),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+(2) experiments 테이블
+```sql
+CREATE TABLE experiments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  scenario TEXT NOT NULL,
+  name TEXT NOT NULL,
+  data JSONB NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- 인덱스
+CREATE INDEX idx_experiments_user_id ON experiments(user_id);
+CREATE INDEX idx_experiments_created_at ON experiments(created_at DESC);
+```
+
+data JSONB 구조 예시:
+```json
+{
+  "params": {
+    "ball": {
+      "mass": 0.145,
+      "radius": 0.0365,
+      "dragCoefficient": 0.3,
+      "liftCoefficient": 0.2
+    },
+    "initial": {
+      "velocity": 35,
+      "angle": { "horizontal": 0, "vertical": -2 },
+      "spin": { "x": 0, "y": 2000, "z": 0 },
+      "releasePoint": { "x": 0, "y": 2.0, "z": 0 }
+    },
+    "environment": {
+      "gravity": 9.81,
+      "temperature": 20,
+      "pressure": 101325,
+      "humidity": 50
+    }
+  },
+  "result": {
+    "trajectory": [...],
+    "flightTime": 0.527,
+    "maxHeight": 2.05,
+    "horizontalBreak": 0.12,
+    "verticalDrop": 0.68,
+    "finalVelocity": 32.5,
+    "plateHeight": 0.85,
+    "isStrike": true
+  }
+}
+```
+
+2.7.3 RLS 정책
+
+본 프로젝트는 Row Level Security(RLS)를 활성화하여 데이터 격리를 구현하였습니다.
+
+(1) profiles 테이블 RLS
+```sql
+-- RLS 활성화
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- 자신의 프로필만 조회 가능
+CREATE POLICY "Users can view own profile"
+ON profiles FOR SELECT
+USING (auth.uid() = id);
+
+-- 자신의 프로필만 수정 가능
+CREATE POLICY "Users can update own profile"
+ON profiles FOR UPDATE
+USING (auth.uid() = id);
+```
+
+(2) experiments 테이블 RLS
+```sql
+-- RLS 활성화
+ALTER TABLE experiments ENABLE ROW LEVEL SECURITY;
+
+-- 자신의 실험만 조회 가능
+CREATE POLICY "Users can view own experiments"
+ON experiments FOR SELECT
+USING (auth.uid() = user_id);
+
+-- 자신의 실험만 삽입 가능
+CREATE POLICY "Users can insert own experiments"
+ON experiments FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- 자신의 실험만 삭제 가능
+CREATE POLICY "Users can delete own experiments"
+ON experiments FOR DELETE
+USING (auth.uid() = user_id);
+```
+
+RLS 정책의 동작 방식:
+- 모든 SQL 쿼리에 자동으로 WHERE 조건 추가
+- PostgreSQL 수준에서 보안 적용
+- 클라이언트에서 우회 불가능
+- auth.uid() 함수로 현재 로그인 사용자 식별
+

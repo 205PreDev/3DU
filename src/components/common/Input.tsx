@@ -86,11 +86,6 @@ export const HelperText = styled.div`
   font-size: ${theme.typography.fontSize.xs};
 `
 
-interface InputWrapperProps {
-  icon?: React.ReactNode
-  children: React.ReactNode
-}
-
 export const InputWrapper = styled.div<{ hasIcon?: boolean }>`
   position: relative;
   width: 100%;

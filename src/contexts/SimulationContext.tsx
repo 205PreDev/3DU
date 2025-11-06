@@ -115,10 +115,6 @@ export function SimulationProvider({ children }: { children: ReactNode }): JSX.E
     setIsSimulating(true)
     const startTime = performance.now()
 
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    console.log('⚾ 시뮬레이션 시작')
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-
     try {
       const simResult = runSimulation(params, { dt: trajectoryDt, maxTime: 5.0 })
       const endTime = performance.now()
@@ -146,23 +142,7 @@ export function SimulationProvider({ children }: { children: ReactNode }): JSX.E
 
       setPerformanceMetrics(metrics)
 
-      // 콘솔 출력
-      console.log('📊 성능 지표')
-      console.log(`  ⏱️  물리 계산: ${physicsTime.toFixed(2)} ms`)
-      console.log(`  📈 궤적 포인트: ${simResult.trajectory.length}개`)
-      console.log(`  ⏰ 비행시간: ${simResult.flightTime.toFixed(3)}s`)
-      console.log('')
-      console.log('🎯 결과')
-      console.log(`  ${simResult.isStrike ? '✅ 스트라이크' : '❌ 볼'}`)
-      console.log(`  📏 수평 변화: ${(simResult.horizontalBreak * 100).toFixed(1)} cm`)
-      console.log(`  📐 수직 낙차: ${(simResult.verticalDrop * 100).toFixed(1)} cm`)
-      const finalSpeed = Math.sqrt(
-        simResult.finalVelocity.x ** 2 +
-        simResult.finalVelocity.y ** 2 +
-        simResult.finalVelocity.z ** 2
-      )
-      console.log(`  🚀 최종 속도: ${finalSpeed.toFixed(1)} m/s`)
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      // 프로덕션: 성능 로그 제거 (DebugPanel에서 확인 가능)
 
     } catch (error) {
       console.error('❌ 시뮬레이션 오류:', error)
