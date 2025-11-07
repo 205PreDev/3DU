@@ -22,6 +22,7 @@
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.9.5",
+    "serve": "^14.2.0",
     "styled-components": "^6.1.1",
     "three": "^0.158.0",
     "three-stdlib": "^2.36.0",
