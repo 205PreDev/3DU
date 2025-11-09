@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { createHtmlPlugin } from 'vite-plugin-html'
 import path from 'path'
 
 // https://vitejs.dev/config/
@@ -21,6 +22,9 @@ export default defineConfig({
           ]
         ]
       }
+    }),
+    createHtmlPlugin({
+      minify: true
     })
   ],
   base: '/',
@@ -36,7 +40,8 @@ export default defineConfig({
     cssCodeSplit: false,
     rollupOptions: {
       output: {
-        manualChunks: undefined
+        manualChunks: undefined,
+        assetFileNames: 'assets/[name]-[hash][extname]'
       }
     }
   }

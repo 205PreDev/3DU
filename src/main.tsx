@@ -5,13 +5,19 @@ import './index.css'
 
 // Hide loader when React is ready
 const root = ReactDOM.createRoot(document.getElementById('root')!)
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)
 
-// Mark app as ready after first render
-setTimeout(() => {
-  document.body.classList.add('app-ready')
-}, 100)
+// Delay render until after first paint to ensure styled-components loads
+requestAnimationFrame(() => {
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  )
+
+  // Mark app as ready after styled-components has injected styles
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.body.classList.add('app-ready')
+    })
+  })
+})
