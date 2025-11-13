@@ -16,7 +16,7 @@ architecture-improvements
 mermaid
 archive
 .claude
-
+coverage
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -27,6 +27,7 @@ archive
 *.njsproj
 *.sln
 *.sw?
+verify-physics.js
 
 # Environment variables
 .env
