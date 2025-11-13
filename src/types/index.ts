@@ -68,7 +68,11 @@ export interface SimulationResult {
   plateHeight: number       // 홈플레이트 통과 높이
   horizontalBreak: number   // 수평 변화량 (m)
   verticalDrop: number      // 수직 낙차 (m)
-  isStrike: boolean         // 스트라이크 판정
+  isStrike: boolean         // 스트라이크 판정 (deprecated, UI에서 제거됨)
+  initialSpeed: number      // 초기 속도 (m/s)
+  spinRate: number          // 회전수 (rpm) - 스핀 벡터의 크기
+  horizontalDistance: number // 수평 이동 거리 (m)
+  reachedPlate: boolean     // 스트라이크 존에 도달했는지 여부
 }
 
 // 구종 타입

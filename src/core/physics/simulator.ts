@@ -157,6 +157,22 @@ export class PitchSimulator {
     const verticalDrop = this.params.initial.releasePoint.y - plateHeight
     const isStrike = this.checkStrike(plateX, plateHeight)  // 플레이트 통과 시의 위치로 판정
 
+    // 초기 속도 (입력값)
+    const initialSpeed = this.params.initial.velocity
+
+    // 회전수 (rpm) - 스핀 벡터의 크기
+    const spinRate = Math.sqrt(
+      this.params.initial.spin.x ** 2 +
+      this.params.initial.spin.y ** 2 +
+      this.params.initial.spin.z ** 2
+    )
+
+    // 수평 이동 거리 (릴리스 포인트부터 홈플레이트까지)
+    const horizontalDistance = Math.sqrt(
+      (state.position.x - this.params.initial.releasePoint.x) ** 2 +
+      (state.position.z - this.params.initial.releasePoint.z) ** 2
+    )
+
     return {
       trajectory,
       flightTime: state.time,
@@ -166,7 +182,11 @@ export class PitchSimulator {
       plateHeight,
       horizontalBreak,
       verticalDrop,
-      isStrike
+      isStrike,
+      initialSpeed,
+      spinRate,
+      horizontalDistance,
+      reachedPlate
     }
   }
 

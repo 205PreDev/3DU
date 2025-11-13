@@ -11,6 +11,7 @@ import { Ball3D } from './Ball3D'
 import { Pitcher3D } from './Pitcher3D'
 import { TrajectoryLine, CompletedTrajectoryLine } from './TrajectoryLine'
 import { ForceVectors3D } from './ForceVectors3D'
+import { PlateMarker } from './PlateMarker'
 import { PitchInputPanel } from './PitchInputPanel'
 import { ResultPanel } from '@/core/ui/ResultPanel'
 import { ReplayControls } from '@/core/ui/ReplayControls'
@@ -457,6 +458,35 @@ export function PitchSimulator() {
                 {/* 완료된 궤적 */}
                 {showBall && result && !isReplaying && currentIndex >= result.trajectory.length - 1 && completedTrajectory.length > 1 && (
                   <CompletedTrajectoryLine points={completedTrajectory} />
+                )}
+
+                {/* 플레이트 충돌 마커 - 시뮬레이션 완료 후 표시 (스트라이크 존 도달한 경우만) */}
+                {showBall && result && !isReplaying && currentIndex >= result.trajectory.length - 1 && result.reachedPlate && (
+                  <PlateMarker
+                    x={result.finalPosition.x}
+                    y={result.plateHeight}
+                    color="#00ff00"
+                  />
+                )}
+              </>
+            )}
+
+            {/* 비교 모드 플레이트 마커 (스트라이크 존 도달한 경우만) */}
+            {isComparing && (
+              <>
+                {experimentA && experimentA.result.reachedPlate && (
+                  <PlateMarker
+                    x={experimentA.result.finalPosition.x}
+                    y={experimentA.result.plateHeight}
+                    color="#4444ff"
+                  />
+                )}
+                {experimentB && experimentB.result.reachedPlate && (
+                  <PlateMarker
+                    x={experimentB.result.finalPosition.x}
+                    y={experimentB.result.plateHeight}
+                    color="#ff4444"
+                  />
                 )}
               </>
             )}

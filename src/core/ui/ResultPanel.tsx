@@ -1,7 +1,6 @@
 import styled from 'styled-components'
 import { SimulationResult, Vector3 } from '@/types'
 import { theme } from '@/styles/theme'
-import { MdSportsBaseball, MdBlock } from 'react-icons/md'
 import { IoEyeOutline } from 'react-icons/io5'
 
 interface ResultPanelProps {
@@ -28,11 +27,12 @@ export function ResultPanel({ result, showForceVectors = false, onToggleForceVec
     )
   }
 
-  const speedKmh = (Math.sqrt(
+  const initialSpeedKmh = (result.initialSpeed * 3.6).toFixed(1)
+  const finalSpeedMs = Math.sqrt(
     result.finalVelocity.x ** 2 +
     result.finalVelocity.y ** 2 +
     result.finalVelocity.z ** 2
-  ) * 3.6).toFixed(1)
+  ).toFixed(2)
 
   return (
     <Panel>
@@ -40,53 +40,53 @@ export function ResultPanel({ result, showForceVectors = false, onToggleForceVec
 
       <ResultGrid>
         <ResultItem>
+          <Label>초기 속도</Label>
+          <Value>{initialSpeedKmh} km/h</Value>
+        </ResultItem>
+
+        <ResultItem>
+          <Label>회전수</Label>
+          <Value>{result.spinRate.toFixed(0)} rpm</Value>
+        </ResultItem>
+
+        <ResultItem>
           <Label>비행 시간</Label>
-          <Value>{result.flightTime.toFixed(3)}초</Value>
+          <Value>{result.flightTime.toFixed(3)} s</Value>
+        </ResultItem>
+
+        <ResultItem>
+          <Label>수평 이동 거리</Label>
+          <Value>{result.horizontalDistance.toFixed(2)} m</Value>
         </ResultItem>
 
         <ResultItem>
           <Label>최고 높이</Label>
-          <Value>{result.maxHeight.toFixed(2)}m</Value>
+          <Value>{result.maxHeight.toFixed(2)} m</Value>
         </ResultItem>
 
         <ResultItem>
-          <Label>홈플레이트 도달 높이</Label>
-          <Value>{result.plateHeight.toFixed(2)}m</Value>
+          <Label>종단 속도</Label>
+          <Value>{finalSpeedMs} m/s</Value>
         </ResultItem>
 
         <ResultItem>
-          <Label>최종 속도</Label>
-          <Value>{speedKmh} km/h</Value>
+          <Label>도달 높이</Label>
+          <Value>{result.plateHeight.toFixed(2)} m</Value>
         </ResultItem>
 
         <ResultItem>
-          <Label>수평 이동 (←/→)</Label>
+          <Label>수평 변위 (←/→)</Label>
           <Value>
             {result.horizontalBreak > 0 ? '→ ' : '← '}
-            {Math.abs(result.horizontalBreak).toFixed(2)}m
+            {Math.abs(result.horizontalBreak).toFixed(2)} m
           </Value>
         </ResultItem>
 
         <ResultItem>
           <Label>수직 낙차 (↓)</Label>
-          <Value>{result.verticalDrop.toFixed(2)}m</Value>
+          <Value>{result.verticalDrop.toFixed(2)} m</Value>
         </ResultItem>
       </ResultGrid>
-
-      <JudgmentSection strike={result.isStrike}>
-        <JudgmentLabel>판정</JudgmentLabel>
-        <JudgmentValue>
-          {result.isStrike ? (
-            <>
-              <MdSportsBaseball /> 스트라이크
-            </>
-          ) : (
-            <>
-              <MdBlock /> 볼
-            </>
-          )}
-        </JudgmentValue>
-      </JudgmentSection>
 
       {/* 힘 벡터 시각화 토글 */}
       {onToggleForceVectors && (
@@ -219,9 +219,17 @@ const EmptyMessage = styled.div`
 
 const ResultGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: ${theme.spacing.sm};
   margin-bottom: ${theme.spacing.base};
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `
 
 const ResultItem = styled.div`
@@ -353,58 +361,4 @@ const TdValue = styled.td<{ bold?: boolean }>`
   text-align: right;
   color: ${theme.colors.text.primary};
   font-weight: ${props => props.bold ? theme.typography.fontWeight.semibold : theme.typography.fontWeight.regular};
-`
-
-const JudgmentSection = styled.div<{ strike: boolean }>`
-  background: ${props =>
-    props.strike
-      ? 'linear-gradient(135deg, rgba(0, 230, 118, 0.15), rgba(0, 230, 118, 0.05))'
-      : 'linear-gradient(135deg, rgba(255, 61, 113, 0.15), rgba(255, 61, 113, 0.05))'
-  };
-  padding: ${theme.spacing.base};
-  border-radius: ${theme.borderRadius.md};
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1.5px solid ${props => props.strike ? theme.colors.success : theme.colors.error};
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: ${props =>
-      props.strike
-        ? theme.colors.success
-        : theme.colors.error
-    };
-    opacity: 0;
-    transition: ${theme.transitions.normal};
-  }
-
-  &:hover::before {
-    opacity: 0.05;
-  }
-`
-
-const JudgmentLabel = styled.div`
-  font-size: ${theme.typography.fontSize.sm};
-  color: ${theme.colors.text.secondary};
-  font-weight: ${theme.typography.fontWeight.medium};
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  position: relative;
-  z-index: 1;
-`
-
-const JudgmentValue = styled.div`
-  font-size: ${theme.typography.fontSize.xl};
-  font-weight: ${theme.typography.fontWeight.bold};
-  color: ${theme.colors.text.primary};
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.xs};
-  position: relative;
-  z-index: 1;
 `

@@ -19,7 +19,6 @@ interface Category {
     title: string
     learningContent: string[]
     learningEffects: string[]
-    estimatedTime: string
   }
 }
 
@@ -27,22 +26,21 @@ const categories: Category[] = [
   {
     id: 'mechanics',
     title: '고전역학',
-    subtitle: '투구 물리',
+    subtitle: '투구 모듈',
     isImplemented: true,
     route: '/categories/mechanics/pitch',
     detailData: {
-      title: '투구 물리학',
+      title: '고전역학',
       learningContent: [
-        '중력, 항력, 마그누스 효과',
-        '야구공의 궤적 분석',
-        '다양한 구종의 물리적 원리',
+        '포물선 운동과 운동 방정식',
+        '유체 항력의 물리적 원리',
+        '회전에 의한 마그누스 효과',
       ],
       learningEffects: [
-        '힘의 합성과 운동 방정식 이해',
-        '유체역학 기초 개념 습득',
-        '회전 운동과 외적 연산 학습',
+        '힘과 가속도의 관계 이해',
+        '벡터의 합성과 분해',
+        '컴퓨터 시뮬레이션의 원리',
       ],
-      estimatedTime: '30~60분',
     },
   },
   {
@@ -183,7 +181,6 @@ export const CategoriesPage: React.FC = () => {
           title={selectedCategory.detailData.title}
           learningContent={selectedCategory.detailData.learningContent}
           learningEffects={selectedCategory.detailData.learningEffects}
-          estimatedTime={selectedCategory.detailData.estimatedTime}
         />
       )}
     </PageContainer>

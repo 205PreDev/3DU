@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { theme } from '@/styles/theme'
 import { Button } from '@/components/common/Button'
 import { IoClose } from 'react-icons/io5'
-import { FaBook, FaBrain, FaClock } from 'react-icons/fa'
+import { FaBook, FaBrain } from 'react-icons/fa'
 
 interface SubjectDetailModalProps {
   isOpen: boolean
@@ -13,7 +13,6 @@ interface SubjectDetailModalProps {
   title: string
   learningContent: string[]
   learningEffects: string[]
-  estimatedTime: string
 }
 
 export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
@@ -23,7 +22,6 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
   title,
   learningContent,
   learningEffects,
-  estimatedTime,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
@@ -109,10 +107,6 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
 
             <Header>
               <Title id="subject-modal-title">{title}</Title>
-              <TimeInfo>
-                <FaClock />
-                <span>예상 소요 시간: {estimatedTime}</span>
-              </TimeInfo>
             </Header>
 
             <Content>
@@ -261,18 +255,6 @@ const Title = styled.h2`
 
   @media (max-width: 768px) {
     font-size: ${theme.typography.fontSize.xl};
-  }
-`
-
-const TimeInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.xs};
-  color: ${theme.colors.text.secondary};
-  font-size: ${theme.typography.fontSize.sm};
-
-  svg {
-    color: ${theme.colors.primary.main};
   }
 `
 
