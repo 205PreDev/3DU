@@ -30,7 +30,7 @@ export const LoginPage: React.FC = () => {
       if (error) throw error
 
       if (data.user) {
-        navigate('/pitch')
+        navigate('/categories')
       }
     } catch (err: any) {
       setError(err.message || '로그인에 실패했습니다.')
