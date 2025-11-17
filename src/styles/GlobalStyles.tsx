@@ -54,18 +54,52 @@ export const GlobalStyles = createGlobalStyle`
     background: ${theme.colors.primary.light};
   }
 
-  /* 버튼 기본 스타일 초기화 */
+  /* 버튼 기본 스타일 초기화 및 fallback */
   button {
     font-family: inherit;
     cursor: pointer;
     border: none;
     outline: none;
+    /* fallback 스타일 - styled-components 로딩 전 기본 모양 제공 */
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s;
+    background: linear-gradient(135deg, ${theme.colors.primary.main} 0%, ${theme.colors.primary.dark} 100%);
+    color: ${theme.colors.text.primary};
   }
 
-  /* 입력 필드 기본 스타일 */
+  button:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* 입력 필드 기본 스타일 및 fallback */
   input, textarea, select {
     font-family: inherit;
     outline: none;
+    /* fallback 스타일 */
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid ${theme.colors.border.main};
+    background: ${theme.colors.background.elevated};
+    color: ${theme.colors.text.primary};
+    font-size: ${theme.typography.fontSize.base};
+    transition: ${theme.transitions.fast};
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: ${theme.colors.primary.main};
+    box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: ${theme.colors.text.tertiary};
   }
 
   /* 링크 기본 스타일 */

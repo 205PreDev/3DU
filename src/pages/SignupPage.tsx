@@ -19,13 +19,26 @@ export const SignupPage: React.FC = () => {
     setLoading(true)
     setError(null)
 
+    // 사용자 이름 유효성 검증
+    if (!username.trim()) {
+      setError('사용자 이름을 입력해주세요.')
+      setLoading(false)
+      return
+    }
+
+    if (username.trim().length < 2) {
+      setError('사용자 이름은 2자 이상이어야 합니다.')
+      setLoading(false)
+      return
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            username,
+            username: username.trim(), // 앞뒤 공백 제거
           },
         },
       })

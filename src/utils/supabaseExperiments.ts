@@ -32,8 +32,8 @@ export const supabaseExperimentsService = {
       return (data || []).map(exp => ({
         id: exp.id,
         name: exp.name,
-        params: exp.params as PitchParameters,
-        result: exp.result as SimulationResult,
+        params: exp.data?.params as PitchParameters,
+        result: exp.data?.result as SimulationResult,
         created_at: exp.created_at,
         updated_at: exp.updated_at
       }))
@@ -55,12 +55,19 @@ export const supabaseExperimentsService = {
     result: SimulationResult
   ): Promise<SupabaseExperiment | null> {
     try {
+      // 현재 로그인한 사용자 가져오기
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData.user) {
+        throw new Error('로그인이 필요합니다.')
+      }
+
       const { data, error } = await supabase
         .from('experiments')
         .insert({
+          user_id: userData.user.id, // user_id 추가
+          scenario: 'pitch', // scenario 추가
           name: name || `실험 ${new Date().toLocaleString('ko-KR')}`,
-          params: params as unknown,
-          result: result as unknown
+          data: { params, result } // params와 result를 data 필드에 저장
         })
         .select()
         .single()
@@ -70,8 +77,8 @@ export const supabaseExperimentsService = {
       return {
         id: data.id,
         name: data.name,
-        params: data.params as PitchParameters,
-        result: data.result as SimulationResult,
+        params: data.data.params as PitchParameters,
+        result: data.data.result as SimulationResult,
         created_at: data.created_at,
         updated_at: data.updated_at
       }
@@ -97,8 +104,8 @@ export const supabaseExperimentsService = {
       return {
         id: data.id,
         name: data.name,
-        params: data.params as PitchParameters,
-        result: data.result as SimulationResult,
+        params: data.data?.params as PitchParameters,
+        result: data.data?.result as SimulationResult,
         created_at: data.created_at,
         updated_at: data.updated_at
       }
