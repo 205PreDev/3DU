@@ -24,6 +24,7 @@ import { AccountModal } from '@/core/ui/AccountModal'
 import { RecentExperimentsPanel } from '@/core/ui/RecentExperimentsPanel'
 import { DebugPanel } from '@/core/ui/DebugPanel'
 import { GraphicsSettingsPanel } from '@/core/ui/GraphicsSettingsPanel'
+import { EnjoyPanel } from '@/core/ui/EnjoyPanel'
 import { CameraController } from '@/core/renderer/CameraController'
 import { Vector3, PitchParameters } from '@/types'
 import { supabaseExperimentsService } from '@/utils/supabaseExperiments'
@@ -59,6 +60,7 @@ export function PitchSimulator() {
   const [showBall, setShowBall] = useState(false) // 공 표시 여부 (48프레임 후)
   const [pitcherStartTrigger, setPitcherStartTrigger] = useState(0) // 투수 애니메이션 시작 트리거
   const [showForceVectors, setShowForceVectors] = useState(false) // 힘 벡터 표시 여부
+  const [activeTab, setActiveTab] = useState('parameters') // 현재 활성 탭
 
   // 시뮬레이션 결과가 나오면 초기화
   useEffect(() => {
@@ -158,6 +160,10 @@ export function PitchSimulator() {
     setIsAccountModalOpen(true)
   }
 
+  const handleChallengeClick = () => {
+    setActiveTab('enjoy')
+  }
+
   // 실험 저장
   const handleSaveExperiment = async (name: string) => {
     if (result) {
@@ -172,6 +178,8 @@ export function PitchSimulator() {
 
   // 탭 변경 핸들러
   const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId)
+
     if (tabId === 'results' && result) {
       // "결과" 탭 진입 시 현재 위치 유지
       // replayTime과 isReplaying은 그대로 유지 (아무것도 안 함)
@@ -332,6 +340,11 @@ export function PitchSimulator() {
       content: <ComparisonPanel />
     },
     {
+      id: 'enjoy',
+      label: 'Enjoy',
+      content: <EnjoyPanel />
+    },
+    {
       id: 'debug',
       label: '디버그',
       content: <DebugPanel />
@@ -349,6 +362,7 @@ export function PitchSimulator() {
         scenarioName="야구 투구 시뮬레이터"
         onHelpClick={handleHelpClick}
         onUserClick={handleUserClick}
+        onChallengeClick={handleChallengeClick}
       />
 
       <MainContent>
@@ -494,7 +508,12 @@ export function PitchSimulator() {
         </ViewerSection>
 
         <ControlPanel>
-          <TabContainer tabs={rightPanelTabs} defaultTab="parameters" onTabChange={handleTabChange} />
+          <TabContainer
+            tabs={rightPanelTabs}
+            defaultTab="parameters"
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+          />
         </ControlPanel>
       </MainContent>
 

@@ -1,26 +1,73 @@
 import styled from 'styled-components'
 import { theme } from '@/styles/theme'
 import { HiQuestionMarkCircle, HiUser } from 'react-icons/hi2'
+import { useChallenge } from '@/contexts/ChallengeContext'
 
 interface TopNavigationBarProps {
   scenarioName?: string
   onHelpClick?: () => void
   onUserClick?: () => void
+  onChallengeClick?: () => void
 }
 
 /**
  * 상단 네비게이션 바
- * 시나리오 이름, 도움말, 사용자 메뉴 제공
+ * 시나리오 이름, 도움말, 사용자 메뉴, 챌린지 인디케이터 제공
  */
 export function TopNavigationBar({
   scenarioName = '야구 투구 시뮬레이터',
   onHelpClick,
-  onUserClick
+  onUserClick,
+  onChallengeClick
 }: TopNavigationBarProps) {
+  const { activeChallenge, targetChallenge, movementChallenge, reverseChallenge } = useChallenge()
+
+  const getChallengeInfo = () => {
+    if (activeChallenge === 'target' && targetChallenge) {
+      return {
+        icon: '🎯',
+        label: targetChallenge.levelTitle,
+        status: `${targetChallenge.attemptsLeft}/${targetChallenge.maxAttempts} 시도 남음`,
+        progress: targetChallenge.successCount > 0
+          ? `${targetChallenge.successCount}/${targetChallenge.totalTargets} 성공`
+          : undefined
+      }
+    }
+    if (activeChallenge === 'movement' && movementChallenge) {
+      return {
+        icon: '📊',
+        label: movementChallenge.goalTitle,
+        status: '진행 중'
+      }
+    }
+    if (activeChallenge === 'reverse' && reverseChallenge) {
+      return {
+        icon: '🧩',
+        label: reverseChallenge.problemTitle,
+        status: '진행 중'
+      }
+    }
+    return null
+  }
+
+  const challengeInfo = getChallengeInfo()
+
   return (
     <Container>
       <LeftSection>
         <ScenarioTitle>{scenarioName}</ScenarioTitle>
+        {challengeInfo && (
+          <ChallengeIndicator onClick={onChallengeClick}>
+            <ChallengeIcon>{challengeInfo.icon}</ChallengeIcon>
+            <ChallengeInfo>
+              <ChallengeLabel>{challengeInfo.label}</ChallengeLabel>
+              <ChallengeStatus>
+                {challengeInfo.status}
+                {challengeInfo.progress && ` | ${challengeInfo.progress}`}
+              </ChallengeStatus>
+            </ChallengeInfo>
+          </ChallengeIndicator>
+        )}
       </LeftSection>
 
       <RightSection>
@@ -162,4 +209,56 @@ const UserIcon = styled.span`
   svg {
     display: block;
   }
+`
+
+const ChallengeIndicator = styled.button`
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.sm};
+  padding: ${theme.spacing.xs} ${theme.spacing.base};
+  background: ${theme.colors.primary.main}15;
+  border: 1px solid ${theme.colors.primary.main}40;
+  border-radius: ${theme.borderRadius.md};
+  cursor: pointer;
+  transition: ${theme.transitions.fast};
+  margin-left: ${theme.spacing.base};
+
+  &:hover {
+    background: ${theme.colors.primary.main}25;
+    border-color: ${theme.colors.primary.main};
+    transform: translateY(-1px);
+    box-shadow: ${theme.shadows.glow};
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`
+
+const ChallengeIcon = styled.span`
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
+
+const ChallengeInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+`
+
+const ChallengeLabel = styled.div`
+  font-size: ${theme.typography.fontSize.sm};
+  font-weight: ${theme.typography.fontWeight.semibold};
+  color: ${theme.colors.text.primary};
+  line-height: 1.2;
+`
+
+const ChallengeStatus = styled.div`
+  font-size: ${theme.typography.fontSize.xs};
+  color: ${theme.colors.text.secondary};
+  font-family: ${theme.typography.fontFamily.mono};
+  line-height: 1.2;
 `

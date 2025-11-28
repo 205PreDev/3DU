@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { SimulationProvider } from './contexts/SimulationContext'
 import { GraphicsProvider } from './contexts/GraphicsContext'
 import { ComparisonProvider } from './contexts/ComparisonContext'
+import { ChallengeProvider } from './contexts/ChallengeContext'
 import { PitchSimulator } from './scenarios/pitch/PitchSimulator'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
@@ -35,7 +36,9 @@ function App() {
                     <GraphicsProvider>
                       <SimulationProvider>
                         <ComparisonProvider>
-                          <PitchSimulator />
+                          <ChallengeProvider>
+                            <PitchSimulator />
+                          </ChallengeProvider>
                         </ComparisonProvider>
                       </SimulationProvider>
                     </GraphicsProvider>

@@ -114,3 +114,84 @@ export const DEFAULT_BALL: BallProperties = {
   dragCoefficient: PHYSICS_CONSTANTS.DRAG_COEFFICIENT,
   liftCoefficient: PHYSICS_CONSTANTS.LIFT_COEFFICIENT
 }
+
+// 스트라이크 존 상수
+export const STRIKE_ZONE = {
+  WIDTH: 0.432,   // m (17 inches)
+  HEIGHT: {
+    TOP: 1.07,    // m (평균 상단)
+    BOTTOM: 0.53  // m (평균 하단)
+  }
+} as const
+
+// 스트라이크 존 9구역 타입 (좌상단부터 시계방향)
+export type StrikeZone = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
+// 챌린지 타입
+export type ChallengeType =
+  | 'zone-target'      // 특정 구역 맞추기
+  | 'movement-goal'    // 변화량 목표 달성
+  | 'reverse-problem'  // 역문제 (목표 결과에 맞는 파라미터 찾기)
+
+// 챌린지 목표 조건
+export interface ChallengeGoal {
+  type: ChallengeType
+  description: string
+
+  // 구역 타겟 (zone-target)
+  targetZone?: StrikeZone
+
+  // 변화량 목표 (movement-goal)
+  horizontalBreak?: { min?: number; max?: number }  // m
+  verticalDrop?: { min?: number; max?: number }     // m
+
+  // 역문제 (reverse-problem)
+  targetResult?: {
+    plateHeight?: { min: number; max: number }
+    finalPositionX?: { min: number; max: number }
+    horizontalBreak?: { min: number; max: number }
+    verticalDrop?: { min: number; max: number }
+  }
+
+  // 허용 오차
+  tolerance?: number  // m (기본값: 0.05m = 5cm)
+}
+
+// 챌린지 정의
+export interface Challenge {
+  id: string
+  title: string
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert'
+  goal: ChallengeGoal
+  hint?: string
+  educationalNote?: string  // 물리 개념 설명
+  reward?: {
+    points: number
+    badge?: string
+  }
+}
+
+// 챌린지 진행 상황
+export interface ChallengeProgress {
+  challengeId: string
+  attempts: number
+  completed: boolean
+  bestScore?: number
+  completedAt?: Date
+}
+
+// 챌린지 결과 판정
+export interface ChallengeResult {
+  success: boolean
+  score: number  // 0-100
+  feedback: string
+  details?: {
+    targetZoneHit?: boolean
+    actualZone?: StrikeZone | null
+    movementAchieved?: {
+      horizontalBreak: number
+      verticalDrop: number
+    }
+    accuracy?: number  // 0-1
+  }
+}

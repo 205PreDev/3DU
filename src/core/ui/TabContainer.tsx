@@ -11,6 +11,7 @@ export interface Tab {
 interface TabContainerProps {
   tabs: Tab[]
   defaultTab?: string
+  activeTab?: string  // 외부에서 제어하는 활성 탭
   onTabChange?: (tabId: string) => void
 }
 
@@ -18,11 +19,16 @@ interface TabContainerProps {
  * 탭 컨테이너 컴포넌트
  * 여러 탭 간 전환 UI 제공
  */
-export function TabContainer({ tabs, defaultTab, onTabChange }: TabContainerProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id)
+export function TabContainer({ tabs, defaultTab, activeTab: externalActiveTab, onTabChange }: TabContainerProps) {
+  const [internalActiveTab, setInternalActiveTab] = useState(defaultTab || tabs[0]?.id)
+
+  // 외부에서 제어하는 경우 외부 값 사용, 아니면 내부 상태 사용
+  const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab
 
   const handleTabClick = (tabId: string) => {
-    setActiveTab(tabId)
+    if (externalActiveTab === undefined) {
+      setInternalActiveTab(tabId)
+    }
     onTabChange?.(tabId)
   }
 

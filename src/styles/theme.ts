@@ -21,10 +21,11 @@ export const theme = {
       dark: '#5500DD'
     },
 
-    // Success, Warning, Error
+    // Success, Warning, Error, Info
     success: '#00E676',
     warning: '#FFB300',
     error: '#FF3D71',
+    info: '#00D9FF',
 
     // Background (배경 계층)
     background: {
