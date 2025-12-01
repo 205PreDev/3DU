@@ -1,5 +1,6 @@
 import { ReactNode, useState } from 'react'
 import styled from 'styled-components'
+import { motion, AnimatePresence } from 'framer-motion'
 import { theme } from '@/styles/theme'
 
 export interface Tab {
@@ -36,20 +37,40 @@ export function TabContainer({ tabs, defaultTab, activeTab: externalActiveTab, o
 
   return (
     <Container>
-      <TabHeader>
+      <TabHeader role="tablist">
         {tabs.map(tab => (
           <TabButton
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`tabpanel-${tab.id}`}
+            id={`tab-${tab.id}`}
             $active={activeTab === tab.id}
             onClick={() => handleTabClick(tab.id)}
+            tabIndex={activeTab === tab.id ? 0 : -1}
           >
             {tab.label}
           </TabButton>
         ))}
       </TabHeader>
 
-      <TabContent>
-        {currentTab?.content}
+      <TabContent
+        role="tabpanel"
+        id={`tabpanel-${activeTab}`}
+        aria-labelledby={`tab-${activeTab}`}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            style={{ height: '100%' }}
+          >
+            {currentTab?.content}
+          </motion.div>
+        </AnimatePresence>
       </TabContent>
     </Container>
   )
@@ -97,6 +118,11 @@ const TabButton = styled.button<{ $active: boolean }>`
   transition: ${theme.transitions.normal};
   overflow: hidden;
 
+  &:focus-visible {
+    outline: 2px solid ${theme.colors.primary.main};
+    outline-offset: 2px;
+  }
+
   /* Active 상태 글로우 효과 */
   ${props => props.$active && `
     &::before {
@@ -133,36 +159,4 @@ const TabContent = styled.div`
   min-height: 0; /* Flexbox 스크롤 버그 방지 */
 
   /* 스크롤바는 GlobalStyles에서 정의됨 */
-
-  /* 스크롤 페이드 효과 */
-  &::before,
-  &::after {
-    content: '';
-    position: sticky;
-    display: block;
-    height: 20px;
-    margin: 0 -${theme.spacing.base};
-    pointer-events: none;
-    z-index: 10;
-  }
-
-  &::before {
-    top: 0;
-    background: linear-gradient(
-      to bottom,
-      ${theme.colors.background.secondary},
-      transparent
-    );
-    margin-bottom: -20px;
-  }
-
-  &::after {
-    bottom: 0;
-    background: linear-gradient(
-      to top,
-      ${theme.colors.background.secondary},
-      transparent
-    );
-    margin-top: -20px;
-  }
 `

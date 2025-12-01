@@ -5,6 +5,16 @@ import { useSimulation } from '@/contexts/SimulationContext'
 import { useChallenge } from '@/contexts/ChallengeContext'
 import { StrikeZone, STRIKE_ZONE } from '@/types'
 
+interface ImpactPoint {
+  id: number
+  x: number // 실제 좌표
+  y: number // 실제 좌표
+  zone: StrikeZone | null
+  targetZone: StrikeZone
+  success: boolean
+  timestamp: number
+}
+
 // 챌린지 단계 정의
 interface ChallengeLevel {
   id: string
@@ -79,13 +89,16 @@ const CHALLENGE_LEVELS: ChallengeLevel[] = [
  */
 export function TargetChallengePanel() {
   const { result } = useSimulation()
-  const { startTargetChallenge, updateTargetChallenge, endTargetChallenge } = useChallenge()
+  const { targetChallenge, startTargetChallenge, updateTargetChallenge, endTargetChallenge } = useChallenge()
   const [selectedLevel, setSelectedLevel] = useState<ChallengeLevel>(CHALLENGE_LEVELS[0])
-  const [currentTarget, setCurrentTarget] = useState<StrikeZone | null>(null)
-  const [attemptsLeft, setAttemptsLeft] = useState(selectedLevel.attempts)
-  const [successCount, setSuccessCount] = useState(0)
-  const [totalTargets] = useState(3) // 전문가 모드용
-  const [challengeActive, setChallengeActive] = useState(false)
+  const [impactPoints, setImpactPoints] = useState<ImpactPoint[]>([])
+  const isActive = targetChallenge?.active || false
+
+  // Context로부터 로컬 상태 복원
+  const currentTarget = targetChallenge?.currentTarget ?? null
+  const attemptsLeft = targetChallenge?.attemptsLeft ?? selectedLevel.attempts
+  const successCount = targetChallenge?.successCount ?? 0
+  const totalTargets = targetChallenge?.totalTargets ?? 3
   const [lastAttemptResult, setLastAttemptResult] = useState<{
     success: boolean
     actualZone: StrikeZone | null
@@ -102,10 +115,6 @@ export function TargetChallengePanel() {
   // 챌린지 시작
   const startChallenge = () => {
     const target = generateRandomTarget()
-    setChallengeActive(true)
-    setAttemptsLeft(selectedLevel.attempts)
-    setSuccessCount(0)
-    setCurrentTarget(target)
     setLastAttemptResult(null)
 
     // Context에 챌린지 상태 저장
@@ -124,8 +133,6 @@ export function TargetChallengePanel() {
   // 챌린지 레벨 변경
   const handleLevelChange = (level: ChallengeLevel) => {
     setSelectedLevel(level)
-    setChallengeActive(false)
-    setCurrentTarget(null)
     setLastAttemptResult(null)
     endTargetChallenge()
   }
@@ -162,15 +169,29 @@ export function TargetChallengePanel() {
 
   // 시뮬레이션 결과 확인
   useEffect(() => {
-    if (!challengeActive || !currentTarget || !result || !result.reachedPlate) return
+    if (!isActive || !currentTarget || !result || !result.reachedPlate) return
 
     const actualZone = getZoneFromPosition(
       result.finalPosition.x,
       result.plateHeight
     )
 
+    const success = actualZone === currentTarget
+
+    // 탄착점 추가
+    const newImpactPoint: ImpactPoint = {
+      id: impactPoints.length + 1,
+      x: result.finalPosition.x,
+      y: result.plateHeight,
+      zone: actualZone,
+      targetZone: currentTarget,
+      success,
+      timestamp: Date.now()
+    }
+    setImpactPoints(prev => [...prev, newImpactPoint])
+
     const resultObj = {
-      success: actualZone === currentTarget,
+      success,
       actualZone,
       message: ''
     }
@@ -179,8 +200,7 @@ export function TargetChallengePanel() {
       resultObj.success = false
       resultObj.message = '볼입니다! 스트라이크 존 밖으로 빗나갔습니다.'
       setLastAttemptResult(resultObj)
-      const newAttemptsLeft = attemptsLeft - 1
-      setAttemptsLeft(newAttemptsLeft)
+      const newAttemptsLeft = (targetChallenge?.attemptsLeft ?? 0) - 1
 
       // Context 업데이트
       updateTargetChallenge({
@@ -190,15 +210,12 @@ export function TargetChallengePanel() {
       return
     }
 
-    const success = actualZone === currentTarget
-
     if (success) {
-      const newSuccessCount = successCount + 1
-      setSuccessCount(newSuccessCount)
+      const newSuccessCount = (targetChallenge?.successCount ?? 0) + 1
 
-      if (selectedLevel.id === 'expert-sequential' && newSuccessCount < totalTargets) {
+      if (selectedLevel.id === 'expert-sequential' && newSuccessCount < (targetChallenge?.totalTargets ?? 3)) {
         // 연속 챌린지: 다음 목표 생성
-        resultObj.message = `성공! ${newSuccessCount}/${totalTargets} 완료. 다음 목표를 준비하세요!`
+        resultObj.message = `성공! ${newSuccessCount}/${targetChallenge?.totalTargets ?? 3} 완료. 다음 목표를 준비하세요!`
         setLastAttemptResult(resultObj)
 
         // Context 업데이트
@@ -209,7 +226,6 @@ export function TargetChallengePanel() {
 
         setTimeout(() => {
           const newTarget = generateRandomTarget()
-          setCurrentTarget(newTarget)
           setLastAttemptResult(null)
 
           // Context 업데이트 - 새 목표
@@ -219,22 +235,19 @@ export function TargetChallengePanel() {
         }, 2000)
       } else {
         // 챌린지 완료
-        resultObj.message = `챌린지 완료! ${selectedLevel.title}을(를) 클리어했습니다!`
+        resultObj.message = `챌린지 완료! ${selectedLevel.title}을(를) 클리어했습니다! 초기화 버튼을 눌러 다시 시작하세요`
         setLastAttemptResult(resultObj)
-        setChallengeActive(false)
 
-        // Context 업데이트 및 종료
+        // Context 업데이트
         updateTargetChallenge({
           successCount: newSuccessCount,
           lastResult: resultObj
         })
-        endTargetChallenge()
       }
     } else {
       resultObj.message = `${actualZone}번 구역에 도달했습니다. 목표는 ${currentTarget}번입니다.`
       setLastAttemptResult(resultObj)
-      const newAttemptsLeft = attemptsLeft - 1
-      setAttemptsLeft(newAttemptsLeft)
+      const newAttemptsLeft = (targetChallenge?.attemptsLeft ?? 0) - 1
 
       // Context 업데이트
       updateTargetChallenge({
@@ -246,19 +259,20 @@ export function TargetChallengePanel() {
 
   // 시도 횟수 소진
   useEffect(() => {
-    if (challengeActive && attemptsLeft <= 0) {
+    if (isActive && (targetChallenge?.attemptsLeft ?? 0) <= 0) {
       const failResult = {
         success: false,
         actualZone: null,
-        message: '시도 횟수를 모두 소진했습니다. 다시 도전하세요!'
+        message: '시도 횟수를 모두 소진했습니다. 초기화 버튼을 눌러 다시 시작하세요!'
       }
       setLastAttemptResult(failResult)
-      setChallengeActive(false)
 
-      // Context 종료
-      endTargetChallenge()
+      // Context 업데이트 (종료하지 않음)
+      updateTargetChallenge({
+        lastResult: failResult
+      })
     }
-  }, [attemptsLeft, challengeActive, endTargetChallenge])
+  }, [targetChallenge?.attemptsLeft, isActive, updateTargetChallenge])
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -280,10 +294,24 @@ export function TargetChallengePanel() {
     }
   }
 
+  // 토글 함수
+  const toggleChallenge = () => {
+    if (isActive) {
+      endTargetChallenge()
+    } else {
+      startChallenge()
+    }
+  }
+
   return (
     <Container>
       <Section>
-        <SectionTitle>챌린지 선택</SectionTitle>
+        <SectionHeader>
+          <SectionTitle>챌린지 선택</SectionTitle>
+          <ToggleButton $active={isActive} onClick={toggleChallenge}>
+            {isActive ? '✓ 활성화됨' : '활성화'}
+          </ToggleButton>
+        </SectionHeader>
         <LevelList>
           {CHALLENGE_LEVELS.map((level) => (
             <LevelCard
@@ -304,7 +332,7 @@ export function TargetChallengePanel() {
         </LevelList>
       </Section>
 
-      {!challengeActive ? (
+      {!isActive ? (
         <StartSection>
           <StartButton onClick={startChallenge}>
             챌린지 시작
@@ -329,20 +357,40 @@ export function TargetChallengePanel() {
               </AttemptsInfo>
             </TargetHeader>
             <ZoneDisplay>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((zone) => (
-                <ZoneBox
-                  key={zone}
-                  $isTarget={currentTarget === zone}
-                  $wasHit={lastAttemptResult?.actualZone === zone}
-                >
-                  {zone}
-                </ZoneBox>
-              ))}
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((zone) => {
+                // 해당 구역의 탄착점들 필터링
+                const zoneImpacts = impactPoints.filter(p => p.zone === zone)
+
+                return (
+                  <ZoneBox
+                    key={zone}
+                    $isTarget={currentTarget === zone}
+                    $wasHit={lastAttemptResult?.actualZone === zone}
+                  >
+                    <ZoneNumber>{zone}</ZoneNumber>
+                    {/* 탄착점 표시 */}
+                    {zoneImpacts.map((point) => (
+                      <ZoneImpactMarker
+                        key={point.id}
+                        $success={point.success}
+                      >
+                        {point.id}
+                      </ZoneImpactMarker>
+                    ))}
+                  </ZoneBox>
+                )
+              })}
             </ZoneDisplay>
             {currentTarget && (
               <TargetInstruction>
                 <strong>{currentTarget}번 구역</strong>을 맞추세요!
               </TargetInstruction>
+            )}
+
+            {impactPoints.length > 0 && (
+              <ClearButton onClick={() => setImpactPoints([])}>
+                탄착군 초기화
+              </ClearButton>
             )}
           </TargetSection>
 
@@ -389,11 +437,35 @@ const Section = styled.div`
   padding: ${theme.spacing.base};
 `
 
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${theme.spacing.sm};
+`
+
 const SectionTitle = styled.h4`
-  margin: 0 0 ${theme.spacing.sm} 0;
+  margin: 0;
   font-size: ${theme.typography.fontSize.sm};
   font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.text.primary};
+`
+
+const ToggleButton = styled.button<{ $active: boolean }>`
+  padding: ${theme.spacing.xs} ${theme.spacing.base};
+  background: ${props => props.$active ? theme.colors.success : theme.colors.primary.main};
+  color: white;
+  border: none;
+  border-radius: ${theme.borderRadius.sm};
+  font-size: ${theme.typography.fontSize.xs};
+  font-weight: ${theme.typography.fontWeight.bold};
+  cursor: pointer;
+  transition: ${theme.transitions.fast};
+
+  &:hover {
+    background: ${props => props.$active ? theme.colors.success + 'dd' : theme.colors.primary.dark};
+    transform: translateY(-1px);
+  }
 `
 
 const LevelList = styled.div`
@@ -536,6 +608,7 @@ const ZoneDisplay = styled.div`
 `
 
 const ZoneBox = styled.div<{ $isTarget: boolean; $wasHit: boolean }>`
+  position: relative;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -575,6 +648,52 @@ const ZoneBox = styled.div<{ $isTarget: boolean; $wasHit: boolean }>`
     50% {
       transform: scale(1.05);
     }
+  }
+`
+
+const ZoneNumber = styled.div`
+  z-index: 1;
+`
+
+const ZoneImpactMarker = styled.div<{ $success: boolean }>`
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: ${props => props.$success ? theme.colors.success : theme.colors.error};
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: ${theme.typography.fontWeight.bold};
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+
+  &:not(:first-of-type) {
+    margin-right: 22px;
+  }
+`
+
+const ClearButton = styled.button`
+  width: 100%;
+  padding: ${theme.spacing.sm};
+  margin-top: ${theme.spacing.sm};
+  background: ${theme.colors.background.secondary};
+  border: 1px solid ${theme.colors.border.main};
+  border-radius: ${theme.borderRadius.sm};
+  color: ${theme.colors.text.secondary};
+  font-size: ${theme.typography.fontSize.sm};
+  cursor: pointer;
+  transition: ${theme.transitions.fast};
+
+  &:hover {
+    background: ${theme.colors.background.elevated};
+    border-color: ${theme.colors.primary.main};
+    color: ${theme.colors.text.primary};
   }
 `
 

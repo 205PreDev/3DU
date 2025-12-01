@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 import { SimulationResult, StrikeZone } from '@/types'
 
-// 챌린지 타입
-export type ChallengeType = 'target' | 'movement' | 'reverse' | null
+// 챌린지 타입 (포수 미트 추가)
+export type ChallengeType = 'target' | 'catcherMitt' | 'movement' | 'reverse'
 
 // 타겟 챌린지 상태
 export interface TargetChallengeState {
+  active: boolean
   levelId: string
   levelTitle: string
   currentTarget: StrikeZone | null
@@ -20,8 +21,28 @@ export interface TargetChallengeState {
   } | null
 }
 
+// 포수 미트 챌린지 상태
+export interface CatcherMittChallengeState {
+  active: boolean
+  levelId: string
+  levelTitle: string
+  currentTarget: { x: number; y: number } | null
+  targetRadius: number
+  attemptsLeft: number
+  maxAttempts: number
+  successCount: number
+  totalTargets: number
+  lastResult: {
+    success: boolean
+    distance: number
+    accuracy: number
+    message: string
+  } | null
+}
+
 // 변화량 챌린지 상태
 export interface MovementChallengeState {
+  active: boolean
   goalId: string
   goalTitle: string
   lastResult: {
@@ -33,6 +54,7 @@ export interface MovementChallengeState {
 
 // 역문제 챌린지 상태
 export interface ReverseChallengeState {
+  active: boolean
   problemId: string
   problemTitle: string
   lastResult: {
@@ -44,113 +66,134 @@ export interface ReverseChallengeState {
 
 // 통합 챌린지 상태
 interface ChallengeContextState {
-  // 현재 활성화된 챌린지 타입
-  activeChallenge: ChallengeType
-
-  // 각 챌린지 상태
+  // 각 챌린지 상태 (Map 대신 개별 상태)
   targetChallenge: TargetChallengeState | null
+  catcherMittChallenge: CatcherMittChallengeState | null
   movementChallenge: MovementChallengeState | null
   reverseChallenge: ReverseChallengeState | null
 
-  // 액션
-  startTargetChallenge: (state: TargetChallengeState) => void
-  updateTargetChallenge: (updates: Partial<TargetChallengeState>) => void
+  // 활성화된 챌린지 목록
+  getActiveChallenges: () => ChallengeType[]
+
+  // 타겟 챌린지 액션
+  startTargetChallenge: (state: Omit<TargetChallengeState, 'active'>) => void
+  updateTargetChallenge: (updates: Partial<Omit<TargetChallengeState, 'active'>>) => void
   endTargetChallenge: () => void
 
-  startMovementChallenge: (state: MovementChallengeState) => void
-  updateMovementChallenge: (updates: Partial<MovementChallengeState>) => void
+  // 포수 미트 챌린지 액션
+  startCatcherMittChallenge: (state: Omit<CatcherMittChallengeState, 'active'>) => void
+  updateCatcherMittChallenge: (updates: Partial<Omit<CatcherMittChallengeState, 'active'>>) => void
+  endCatcherMittChallenge: () => void
+
+  // 변화량 챌린지 액션
+  startMovementChallenge: (state: Omit<MovementChallengeState, 'active'>) => void
+  updateMovementChallenge: (updates: Partial<Omit<MovementChallengeState, 'active'>>) => void
   endMovementChallenge: () => void
 
-  startReverseChallenge: (state: ReverseChallengeState) => void
-  updateReverseChallenge: (updates: Partial<ReverseChallengeState>) => void
+  // 역문제 챌린지 액션
+  startReverseChallenge: (state: Omit<ReverseChallengeState, 'active'>) => void
+  updateReverseChallenge: (updates: Partial<Omit<ReverseChallengeState, 'active'>>) => void
   endReverseChallenge: () => void
-
-  // 시뮬레이션 결과 처리 (각 챌린지에서 호출)
-  checkChallengeResult: (result: SimulationResult) => void
 }
 
 const ChallengeContext = createContext<ChallengeContextState | undefined>(undefined)
 
 export function ChallengeProvider({ children }: { children: ReactNode }) {
-  const [activeChallenge, setActiveChallenge] = useState<ChallengeType>(null)
   const [targetChallenge, setTargetChallenge] = useState<TargetChallengeState | null>(null)
+  const [catcherMittChallenge, setCatcherMittChallenge] = useState<CatcherMittChallengeState | null>(null)
   const [movementChallenge, setMovementChallenge] = useState<MovementChallengeState | null>(null)
   const [reverseChallenge, setReverseChallenge] = useState<ReverseChallengeState | null>(null)
 
-  // 타겟 챌린지
-  const startTargetChallenge = (state: TargetChallengeState) => {
-    setActiveChallenge('target')
-    setTargetChallenge(state)
+  // 활성화된 챌린지 목록 반환
+  const getActiveChallenges = (): ChallengeType[] => {
+    const active: ChallengeType[] = []
+    if (targetChallenge?.active) active.push('target')
+    if (catcherMittChallenge?.active) active.push('catcherMitt')
+    if (movementChallenge?.active) active.push('movement')
+    if (reverseChallenge?.active) active.push('reverse')
+    return active
   }
 
-  const updateTargetChallenge = (updates: Partial<TargetChallengeState>) => {
+  // 타겟 챌린지
+  const startTargetChallenge = (state: Omit<TargetChallengeState, 'active'>) => {
+    setTargetChallenge({ ...state, active: true })
+  }
+
+  const updateTargetChallenge = (updates: Partial<Omit<TargetChallengeState, 'active'>>) => {
     if (targetChallenge) {
       setTargetChallenge({ ...targetChallenge, ...updates })
     }
   }
 
   const endTargetChallenge = () => {
-    setActiveChallenge(null)
     setTargetChallenge(null)
   }
 
-  // 변화량 챌린지
-  const startMovementChallenge = (state: MovementChallengeState) => {
-    setActiveChallenge('movement')
-    setMovementChallenge(state)
+  // 포수 미트 챌린지
+  const startCatcherMittChallenge = (state: Omit<CatcherMittChallengeState, 'active'>) => {
+    setCatcherMittChallenge({ ...state, active: true })
   }
 
-  const updateMovementChallenge = (updates: Partial<MovementChallengeState>) => {
+  const updateCatcherMittChallenge = (updates: Partial<Omit<CatcherMittChallengeState, 'active'>>) => {
+    if (catcherMittChallenge) {
+      setCatcherMittChallenge({ ...catcherMittChallenge, ...updates })
+    }
+  }
+
+  const endCatcherMittChallenge = () => {
+    setCatcherMittChallenge(null)
+  }
+
+  // 변화량 챌린지
+  const startMovementChallenge = (state: Omit<MovementChallengeState, 'active'>) => {
+    setMovementChallenge({ ...state, active: true })
+  }
+
+  const updateMovementChallenge = (updates: Partial<Omit<MovementChallengeState, 'active'>>) => {
     if (movementChallenge) {
       setMovementChallenge({ ...movementChallenge, ...updates })
     }
   }
 
   const endMovementChallenge = () => {
-    setActiveChallenge(null)
     setMovementChallenge(null)
   }
 
   // 역문제 챌린지
-  const startReverseChallenge = (state: ReverseChallengeState) => {
-    setActiveChallenge('reverse')
-    setReverseChallenge(state)
+  const startReverseChallenge = (state: Omit<ReverseChallengeState, 'active'>) => {
+    setReverseChallenge({ ...state, active: true })
   }
 
-  const updateReverseChallenge = (updates: Partial<ReverseChallengeState>) => {
+  const updateReverseChallenge = (updates: Partial<Omit<ReverseChallengeState, 'active'>>) => {
     if (reverseChallenge) {
       setReverseChallenge({ ...reverseChallenge, ...updates })
     }
   }
 
   const endReverseChallenge = () => {
-    setActiveChallenge(null)
     setReverseChallenge(null)
-  }
-
-  // 시뮬레이션 결과 체크 (각 챌린지 패널에서 직접 처리하므로 여기서는 빈 함수)
-  const checkChallengeResult = (_result: SimulationResult) => {
-    // 각 챌린지 패널에서 useEffect로 직접 처리
-    // 이 함수는 확장성을 위해 남겨둠
   }
 
   return (
     <ChallengeContext.Provider
       value={{
-        activeChallenge,
         targetChallenge,
+        catcherMittChallenge,
         movementChallenge,
         reverseChallenge,
+        getActiveChallenges,
         startTargetChallenge,
         updateTargetChallenge,
         endTargetChallenge,
+        startCatcherMittChallenge,
+        updateCatcherMittChallenge,
+        endCatcherMittChallenge,
         startMovementChallenge,
         updateMovementChallenge,
         endMovementChallenge,
         startReverseChallenge,
         updateReverseChallenge,
-        endReverseChallenge,
-        checkChallengeResult
+        endReverseChallenge
       }}
     >
       {children}

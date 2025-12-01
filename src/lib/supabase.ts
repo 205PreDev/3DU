@@ -39,6 +39,72 @@ export interface Database {
           updated_at?: string
         }
       }
+      challenge_history: {
+        Row: {
+          id: string
+          user_id: string
+          challenge_type: 'target' | 'catcherMitt' | 'movement' | 'reverse'
+          level_id: string
+          level_title: string
+          success: boolean
+          attempts_used: number
+          max_attempts: number
+          score: number | null
+          details: unknown
+          parameters: unknown
+          result: unknown
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          challenge_type: 'target' | 'catcherMitt' | 'movement' | 'reverse'
+          level_id: string
+          level_title: string
+          success: boolean
+          attempts_used: number
+          max_attempts: number
+          score?: number | null
+          details?: unknown
+          parameters?: unknown
+          result?: unknown
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          challenge_type?: 'target' | 'catcherMitt' | 'movement' | 'reverse'
+          level_id?: string
+          level_title?: string
+          success?: boolean
+          attempts_used?: number
+          max_attempts?: number
+          score?: number | null
+          details?: unknown
+          parameters?: unknown
+          result?: unknown
+          created_at?: string
+          updated_at?: string
+        }
+      }
+    }
+    Views: {
+      challenge_stats: {
+        Row: {
+          user_id: string
+          challenge_type: 'target' | 'catcherMitt' | 'movement' | 'reverse'
+          level_id: string
+          level_title: string
+          total_attempts: number
+          total_successes: number
+          success_rate: number
+          best_score: number | null
+          best_attempts: number | null
+          last_success_at: string | null
+        }
+      }
     }
   }
 }

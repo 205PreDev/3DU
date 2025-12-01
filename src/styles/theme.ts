@@ -134,7 +134,16 @@ export const theme = {
     dropdown: 100,
     sticky: 500,
     modal: 1000,
-    tooltip: 1500
+    tooltip: 1500,
+    toast: 2000
+  },
+
+  // Breakpoints (반응형)
+  breakpoints: {
+    mobile: '480px',
+    tablet: '768px',
+    desktop: '1024px',
+    wide: '1440px'
   }
 }
 

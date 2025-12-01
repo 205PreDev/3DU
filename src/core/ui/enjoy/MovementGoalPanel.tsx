@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { theme } from '@/styles/theme'
 import { useSimulation } from '@/contexts/SimulationContext'
+import { useChallenge } from '@/contexts/ChallengeContext'
 
 interface MovementGoal {
   id: string
@@ -75,12 +76,15 @@ const MOVEMENT_GOALS: MovementGoal[] = [
  */
 export function MovementGoalPanel() {
   const { result } = useSimulation()
+  const { movementChallenge, startMovementChallenge, updateMovementChallenge, endMovementChallenge } = useChallenge()
   const [selectedGoal, setSelectedGoal] = useState<MovementGoal>(MOVEMENT_GOALS[0])
   const [achievementResult, setAchievementResult] = useState<{
     achieved: boolean
     message: string
     details: string
   } | null>(null)
+
+  const isActive = movementChallenge?.active || false
 
   // 목표 달성 여부 판정
   const checkAchievement = () => {
@@ -145,10 +149,24 @@ export function MovementGoalPanel() {
 
   // 시뮬레이션 결과가 업데이트되면 자동으로 체크
   useEffect(() => {
-    if (result && result.reachedPlate) {
+    if (isActive && result && result.reachedPlate) {
       checkAchievement()
     }
-  }, [result, selectedGoal])
+  }, [result, selectedGoal, isActive])
+
+  // 토글 함수
+  const toggleChallenge = () => {
+    if (isActive) {
+      endMovementChallenge()
+      setAchievementResult(null)
+    } else {
+      startMovementChallenge({
+        goalId: selectedGoal.id,
+        goalTitle: selectedGoal.title,
+        lastResult: null
+      })
+    }
+  }
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -179,7 +197,12 @@ export function MovementGoalPanel() {
   return (
     <Container>
       <Section>
-        <SectionTitle>챌린지 선택</SectionTitle>
+        <SectionHeader>
+          <SectionTitle>챌린지 선택</SectionTitle>
+          <ToggleButton $active={isActive} onClick={toggleChallenge}>
+            {isActive ? '✓ 활성화됨' : '활성화'}
+          </ToggleButton>
+        </SectionHeader>
         <GoalList>
           {MOVEMENT_GOALS.map((goal) => (
             <GoalCard
@@ -280,11 +303,35 @@ const Section = styled.div`
   padding: ${theme.spacing.base};
 `
 
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${theme.spacing.sm};
+`
+
 const SectionTitle = styled.h4`
-  margin: 0 0 ${theme.spacing.sm} 0;
+  margin: 0;
   font-size: ${theme.typography.fontSize.sm};
   font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.text.primary};
+`
+
+const ToggleButton = styled.button<{ $active: boolean }>`
+  padding: ${theme.spacing.xs} ${theme.spacing.base};
+  background: ${props => props.$active ? theme.colors.success : theme.colors.primary.main};
+  color: white;
+  border: none;
+  border-radius: ${theme.borderRadius.sm};
+  font-size: ${theme.typography.fontSize.xs};
+  font-weight: ${theme.typography.fontWeight.bold};
+  cursor: pointer;
+  transition: ${theme.transitions.fast};
+
+  &:hover {
+    background: ${props => props.$active ? theme.colors.success + 'dd' : theme.colors.primary.dark};
+    transform: translateY(-1px);
+  }
 `
 
 const GoalList = styled.div`

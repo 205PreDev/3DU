@@ -12,13 +12,13 @@ import { Pitcher3D } from './Pitcher3D'
 import { TrajectoryLine, CompletedTrajectoryLine } from './TrajectoryLine'
 import { ForceVectors3D } from './ForceVectors3D'
 import { PlateMarker } from './PlateMarker'
-import { PitchInputPanel } from './PitchInputPanel'
+import { ParametersPanel } from './ParametersPanel'
 import { ResultPanel } from '@/core/ui/ResultPanel'
 import { ReplayControls } from '@/core/ui/ReplayControls'
 import { CameraPresetButtons } from '@/core/ui/CameraPresetButtons'
 import { TopNavigationBar } from '@/core/ui/TopNavigationBar'
 import { TabContainer, Tab } from '@/core/ui/TabContainer'
-import { ComparisonPanel } from '@/core/ui/ComparisonPanel'
+import { AnalysisPanel } from '@/core/ui/AnalysisPanel'
 import { HelpModal } from '@/core/ui/HelpModal'
 import { AccountModal } from '@/core/ui/AccountModal'
 import { RecentExperimentsPanel } from '@/core/ui/RecentExperimentsPanel'
@@ -185,8 +185,8 @@ export function PitchSimulator() {
       // replayTime과 isReplaying은 그대로 유지 (아무것도 안 함)
     }
 
-    // 비교 모드에서 다른 탭으로 이동 시 비교 종료
-    if (isComparing && tabId !== 'comparison') {
+    // 비교 모드에서 분석 탭이 아닌 다른 탭으로 이동 시 비교 종료
+    if (isComparing && tabId !== 'analysis') {
       stopComparison()
     }
   }
@@ -293,7 +293,7 @@ export function PitchSimulator() {
     {
       id: 'parameters',
       label: '파라미터',
-      content: <PitchInputPanel />
+      content: <ParametersPanel />
     },
     {
       id: 'results',
@@ -335,9 +335,9 @@ export function PitchSimulator() {
       )
     },
     {
-      id: 'comparison',
-      label: '비교',
-      content: <ComparisonPanel />
+      id: 'analysis',
+      label: '분석',
+      content: <AnalysisPanel />
     },
     {
       id: 'enjoy',

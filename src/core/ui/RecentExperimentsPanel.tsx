@@ -56,7 +56,11 @@ export function RecentExperimentsPanel({ onLoad, onSave }: RecentExperimentsPane
   }
 
   const handleLoad = (experiment: SupabaseExperiment) => {
-    onLoad(experiment.params)
+    if (experiment.params) {
+      onLoad(experiment.params)
+    } else {
+      alert('이 실험의 데이터가 손상되었습니다.')
+    }
   }
 
   const handleDelete = async (id: string) => {
@@ -130,13 +134,13 @@ export function RecentExperimentsPanel({ onLoad, onSave }: RecentExperimentsPane
 
               <ExperimentInfo>
                 <InfoItem>
-                  속도: {exp.params.initial.velocity} m/s
+                  속도: {exp.params?.initial?.velocity ?? 'N/A'} m/s
                 </InfoItem>
                 <InfoItem>
-                  회전: Y {exp.params.initial.spin.y} rpm
+                  회전: Y {exp.params?.initial?.spin?.y ?? 'N/A'} rpm
                 </InfoItem>
                 <InfoItem>
-                  {exp.result.isStrike ? '⚾ 스트라이크' : '❌ 볼'}
+                  {exp.result?.isStrike ? '⚾ 스트라이크' : '❌ 볼'}
                 </InfoItem>
               </ExperimentInfo>
 

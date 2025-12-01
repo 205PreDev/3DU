@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { PitchParameters, SimulationResult } from '../types'
+import type { ChallengeType } from '../contexts/ChallengeContext'
 
 // ==================== Types ====================
 
@@ -14,6 +15,36 @@ export interface ExperimentData {
   }
   created_at: string
   updated_at: string
+}
+
+export interface ChallengeHistoryData {
+  id: string
+  user_id: string
+  challenge_type: ChallengeType
+  level_id: string
+  level_title: string
+  success: boolean
+  attempts_used: number
+  max_attempts: number
+  score: number | null
+  details?: unknown
+  parameters?: PitchParameters
+  result?: SimulationResult
+  created_at: string
+  updated_at: string
+}
+
+export interface ChallengeStats {
+  user_id: string
+  challenge_type: ChallengeType
+  level_id: string
+  level_title: string
+  total_attempts: number
+  total_successes: number
+  success_rate: number
+  best_score: number | null
+  best_attempts: number | null
+  last_success_at: string | null
 }
 
 // ⚠️ DEPRECATED: 미니게임 기능 보류 (2025-11-05)
@@ -218,4 +249,145 @@ export async function migrateLocalExperiments(): Promise<void> {
     console.error('마이그레이션 실패:', error)
     throw error
   }
+}
+
+// ==================== Challenge History API ====================
+
+export const challengeHistoryApi = {
+  /**
+   * 챌린지 기록 저장
+   */
+  async create(data: {
+    challenge_type: ChallengeType
+    level_id: string
+    level_title: string
+    success: boolean
+    attempts_used: number
+    max_attempts: number
+    score?: number
+    details?: unknown
+    parameters?: PitchParameters
+    result?: SimulationResult
+  }): Promise<ChallengeHistoryData> {
+    const { data: userData } = await supabase.auth.getUser()
+    if (!userData.user) throw new Error('로그인이 필요합니다.')
+
+    const { data: record, error } = await supabase
+      .from('challenge_history')
+      .insert({
+        user_id: userData.user.id,
+        ...data,
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return record
+  },
+
+  /**
+   * 특정 챌린지 타입의 기록 가져오기
+   */
+  async listByType(
+    challengeType: ChallengeType,
+    limit = 20
+  ): Promise<ChallengeHistoryData[]> {
+    const { data, error } = await supabase
+      .from('challenge_history')
+      .select('*')
+      .eq('challenge_type', challengeType)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return data || []
+  },
+
+  /**
+   * 특정 레벨의 기록 가져오기
+   */
+  async listByLevel(
+    challengeType: ChallengeType,
+    levelId: string,
+    limit = 10
+  ): Promise<ChallengeHistoryData[]> {
+    const { data, error } = await supabase
+      .from('challenge_history')
+      .select('*')
+      .eq('challenge_type', challengeType)
+      .eq('level_id', levelId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return data || []
+  },
+
+  /**
+   * 챌린지 통계 가져오기
+   */
+  async getStats(
+    challengeType?: ChallengeType
+  ): Promise<ChallengeStats[]> {
+    let query = supabase
+      .from('challenge_stats')
+      .select('*')
+
+    if (challengeType) {
+      query = query.eq('challenge_type', challengeType)
+    }
+
+    const { data, error } = await query.order('success_rate', { ascending: false })
+
+    if (error) throw error
+    return data || []
+  },
+
+  /**
+   * 특정 레벨의 통계 가져오기
+   */
+  async getLevelStats(
+    challengeType: ChallengeType,
+    levelId: string
+  ): Promise<ChallengeStats | null> {
+    const { data, error } = await supabase
+      .from('challenge_stats')
+      .select('*')
+      .eq('challenge_type', challengeType)
+      .eq('level_id', levelId)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') return null // No rows found
+      throw error
+    }
+    return data
+  },
+
+  /**
+   * 최근 성공한 챌린지 가져오기
+   */
+  async getRecentSuccesses(limit = 5): Promise<ChallengeHistoryData[]> {
+    const { data, error } = await supabase
+      .from('challenge_history')
+      .select('*')
+      .eq('success', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    return data || []
+  },
+
+  /**
+   * 챌린지 기록 삭제
+   */
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('challenge_history')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  },
 }

@@ -20,53 +20,79 @@ export function TopNavigationBar({
   onUserClick,
   onChallengeClick
 }: TopNavigationBarProps) {
-  const { activeChallenge, targetChallenge, movementChallenge, reverseChallenge } = useChallenge()
+  const {
+    targetChallenge,
+    catcherMittChallenge,
+    movementChallenge,
+    reverseChallenge,
+    getActiveChallenges
+  } = useChallenge()
 
-  const getChallengeInfo = () => {
-    if (activeChallenge === 'target' && targetChallenge) {
-      return {
-        icon: '🎯',
-        label: targetChallenge.levelTitle,
-        status: `${targetChallenge.attemptsLeft}/${targetChallenge.maxAttempts} 시도 남음`,
-        progress: targetChallenge.successCount > 0
-          ? `${targetChallenge.successCount}/${targetChallenge.totalTargets} 성공`
-          : undefined
-      }
+  const activeChallenges = getActiveChallenges()
+
+  const getChallengeInfo = (type: string) => {
+    switch (type) {
+      case 'target':
+        return targetChallenge ? {
+          icon: '🎯',
+          label: targetChallenge.levelTitle,
+          status: `${targetChallenge.attemptsLeft}/${targetChallenge.maxAttempts}`,
+          progress: targetChallenge.successCount > 0
+            ? `${targetChallenge.successCount}/${targetChallenge.totalTargets}`
+            : undefined
+        } : null
+      case 'catcherMitt':
+        return catcherMittChallenge ? {
+          icon: '🧤',
+          label: catcherMittChallenge.levelTitle,
+          status: `${catcherMittChallenge.attemptsLeft}/${catcherMittChallenge.maxAttempts}`,
+          progress: catcherMittChallenge.successCount > 0
+            ? `${catcherMittChallenge.successCount}/${catcherMittChallenge.totalTargets}`
+            : undefined
+        } : null
+      case 'movement':
+        return movementChallenge ? {
+          icon: '📈',
+          label: movementChallenge.goalTitle,
+          status: '진행 중',
+          progress: undefined
+        } : null
+      case 'reverse':
+        return reverseChallenge ? {
+          icon: '🔄',
+          label: reverseChallenge.problemTitle,
+          status: '진행 중',
+          progress: undefined
+        } : null
+      default:
+        return null
     }
-    if (activeChallenge === 'movement' && movementChallenge) {
-      return {
-        icon: '📊',
-        label: movementChallenge.goalTitle,
-        status: '진행 중'
-      }
-    }
-    if (activeChallenge === 'reverse' && reverseChallenge) {
-      return {
-        icon: '🧩',
-        label: reverseChallenge.problemTitle,
-        status: '진행 중'
-      }
-    }
-    return null
   }
-
-  const challengeInfo = getChallengeInfo()
 
   return (
     <Container>
       <LeftSection>
         <ScenarioTitle>{scenarioName}</ScenarioTitle>
-        {challengeInfo && (
-          <ChallengeIndicator onClick={onChallengeClick}>
-            <ChallengeIcon>{challengeInfo.icon}</ChallengeIcon>
-            <ChallengeInfo>
-              <ChallengeLabel>{challengeInfo.label}</ChallengeLabel>
-              <ChallengeStatus>
-                {challengeInfo.status}
-                {challengeInfo.progress && ` | ${challengeInfo.progress}`}
-              </ChallengeStatus>
-            </ChallengeInfo>
-          </ChallengeIndicator>
+        {activeChallenges.length > 0 && (
+          <ChallengesContainer>
+            {activeChallenges.map((type) => {
+              const info = getChallengeInfo(type)
+              if (!info) return null
+
+              return (
+                <ChallengeIndicator key={type} onClick={onChallengeClick}>
+                  <ChallengeIcon>{info.icon}</ChallengeIcon>
+                  <ChallengeInfo>
+                    <ChallengeLabel>{info.label}</ChallengeLabel>
+                    <ChallengeStatus>
+                      {info.status}
+                      {info.progress && ` | ${info.progress}`}
+                    </ChallengeStatus>
+                  </ChallengeInfo>
+                </ChallengeIndicator>
+              )
+            })}
+          </ChallengesContainer>
         )}
       </LeftSection>
 
@@ -101,12 +127,34 @@ const Container = styled.header`
   z-index: ${theme.zIndex.sticky};
   box-shadow: ${theme.shadows.md};
   backdrop-filter: blur(10px);
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    padding: 0 ${theme.spacing.base};
+    height: 48px;
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    padding: 0 ${theme.spacing.sm};
+  }
 `
 
 const LeftSection = styled.div`
   display: flex;
   align-items: center;
   gap: ${theme.spacing.md};
+  flex: 1;
+  min-width: 0;
+`
+
+const ChallengesContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${theme.spacing.xs};
+  flex-wrap: wrap;
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    display: none;
+  }
 `
 
 const ScenarioTitle = styled.h1`
@@ -118,6 +166,14 @@ const ScenarioTitle = styled.h1`
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: -0.02em;
+
+  @media (max-width: ${theme.breakpoints.tablet}) {
+    font-size: ${theme.typography.fontSize.md};
+  }
+
+  @media (max-width: ${theme.breakpoints.mobile}) {
+    font-size: ${theme.typography.fontSize.sm};
+  }
 `
 
 const RightSection = styled.div`
@@ -148,6 +204,11 @@ const IconButton = styled.button`
 
   &:active {
     transform: scale(0.95);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${theme.colors.primary.main};
+    outline-offset: 2px;
   }
 `
 
@@ -214,20 +275,20 @@ const UserIcon = styled.span`
 const ChallengeIndicator = styled.button`
   display: flex;
   align-items: center;
-  gap: ${theme.spacing.sm};
-  padding: ${theme.spacing.xs} ${theme.spacing.base};
-  background: ${theme.colors.primary.main}15;
-  border: 1px solid ${theme.colors.primary.main}40;
-  border-radius: ${theme.borderRadius.md};
+  gap: ${theme.spacing.xs};
+  padding: ${theme.spacing.xs} ${theme.spacing.sm};
+  background: ${theme.colors.success}15;
+  border: 1px solid ${theme.colors.success}50;
+  border-radius: ${theme.borderRadius.full};
   cursor: pointer;
   transition: ${theme.transitions.fast};
-  margin-left: ${theme.spacing.base};
+  white-space: nowrap;
 
   &:hover {
-    background: ${theme.colors.primary.main}25;
-    border-color: ${theme.colors.primary.main};
+    background: ${theme.colors.success}25;
+    border-color: ${theme.colors.success};
     transform: translateY(-1px);
-    box-shadow: ${theme.shadows.glow};
+    box-shadow: 0 0 12px ${theme.colors.success}40;
   }
 
   &:active {
@@ -236,10 +297,11 @@ const ChallengeIndicator = styled.button`
 `
 
 const ChallengeIcon = styled.span`
-  font-size: 20px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 `
 
 const ChallengeInfo = styled.div`
@@ -250,15 +312,15 @@ const ChallengeInfo = styled.div`
 `
 
 const ChallengeLabel = styled.div`
-  font-size: ${theme.typography.fontSize.sm};
+  font-size: ${theme.typography.fontSize.xs};
   font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.text.primary};
-  line-height: 1.2;
+  line-height: 1.3;
 `
 
 const ChallengeStatus = styled.div`
-  font-size: ${theme.typography.fontSize.xs};
+  font-size: 10px;
   color: ${theme.colors.text.secondary};
   font-family: ${theme.typography.fontFamily.mono};
-  line-height: 1.2;
+  line-height: 1.3;
 `

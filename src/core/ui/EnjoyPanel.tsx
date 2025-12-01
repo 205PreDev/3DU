@@ -4,16 +4,24 @@ import { TabContainer, Tab } from './TabContainer'
 import { TargetChallengePanel } from './enjoy/TargetChallengePanel'
 import { MovementGoalPanel } from './enjoy/MovementGoalPanel'
 import { ReverseProblemPanel } from './enjoy/ReverseProblemPanel'
+import { CatcherMittPanel } from './enjoy/CatcherMittPanel'
+import { ChallengeHistoryPanel } from './enjoy/ChallengeHistoryPanel'
+import { StatsDashboard } from './StatsDashboard'
 
 /**
  * Enjoy 패널 - 재미 요소 통합 탭
- * 하위에 타겟, 변화량, 역문제 챌린지 포함
+ * 다양한 챌린지를 통해 게임처럼 즐기며 배우기
  */
 export function EnjoyPanel() {
   const enjoyTabs: Tab[] = [
     {
+      id: 'catcher-mitt',
+      label: '포수 미트',
+      content: <CatcherMittPanel />
+    },
+    {
       id: 'target',
-      label: '타겟',
+      label: '구역',
       content: <TargetChallengePanel />
     },
     {
@@ -36,7 +44,10 @@ export function EnjoyPanel() {
           다양한 챌린지를 통해 야구 물리학을 체험해보세요!
         </Description>
       </Header>
-      <TabContainer tabs={enjoyTabs} defaultTab="target" />
+      <StatsDashboard />
+      <Divider />
+      <ChallengeHistoryPanel />
+      <TabContainer tabs={enjoyTabs} defaultTab="catcher-mitt" />
     </Container>
   )
 }
@@ -47,6 +58,8 @@ const Container = styled.div`
   gap: ${theme.spacing.base};
   height: 100%;
   min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 `
 
 const Header = styled.div`
@@ -69,4 +82,10 @@ const Description = styled.p`
   font-size: ${theme.typography.fontSize.sm};
   color: ${theme.colors.text.secondary};
   line-height: ${theme.typography.lineHeight.relaxed};
+`
+
+const Divider = styled.div`
+  height: 1px;
+  background: ${theme.colors.border.light};
+  margin: ${theme.spacing.base} 0;
 `

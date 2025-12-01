@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { theme } from '@/styles/theme'
 import { useSimulation } from '@/contexts/SimulationContext'
+import { useChallenge } from '@/contexts/ChallengeContext'
 
 interface ReverseProblem {
   id: string
@@ -98,12 +99,15 @@ const REVERSE_PROBLEMS: ReverseProblem[] = [
  */
 export function ReverseProblemPanel() {
   const { result } = useSimulation()
+  const { reverseChallenge, startReverseChallenge, endReverseChallenge } = useChallenge()
   const [selectedProblem, setSelectedProblem] = useState<ReverseProblem>(REVERSE_PROBLEMS[0])
   const [solveResult, setSolveResult] = useState<{
     solved: boolean
     score: number
     feedback: string[]
   } | null>(null)
+
+  const isActive = reverseChallenge?.active || false
 
   // 문제 해결 여부 판정
   const checkSolution = () => {
@@ -209,6 +213,27 @@ export function ReverseProblemPanel() {
     }
   }
 
+  // 토글 함수
+  const toggleChallenge = () => {
+    if (isActive) {
+      endReverseChallenge()
+      setSolveResult(null)
+    } else {
+      startReverseChallenge({
+        problemId: selectedProblem.id,
+        problemTitle: selectedProblem.title,
+        lastResult: null
+      })
+    }
+  }
+
+  // 활성화 시에만 체크
+  useEffect(() => {
+    if (isActive && result && result.reachedPlate) {
+      checkSolution()
+    }
+  }, [result, selectedProblem, isActive])
+
   return (
     <Container>
       <IntroSection>
@@ -220,7 +245,12 @@ export function ReverseProblemPanel() {
       </IntroSection>
 
       <Section>
-        <SectionTitle>문제 선택</SectionTitle>
+        <SectionHeader>
+          <SectionTitle>문제 선택</SectionTitle>
+          <ToggleButton $active={isActive} onClick={toggleChallenge}>
+            {isActive ? '✓ 활성화됨' : '활성화'}
+          </ToggleButton>
+        </SectionHeader>
         <ProblemList>
           {REVERSE_PROBLEMS.map((problem) => (
             <ProblemCard
@@ -342,11 +372,35 @@ const Section = styled.div`
   padding: ${theme.spacing.base};
 `
 
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${theme.spacing.sm};
+`
+
 const SectionTitle = styled.h4`
-  margin: 0 0 ${theme.spacing.sm} 0;
+  margin: 0;
   font-size: ${theme.typography.fontSize.sm};
   font-weight: ${theme.typography.fontWeight.semibold};
   color: ${theme.colors.text.primary};
+`
+
+const ToggleButton = styled.button<{ $active: boolean }>`
+  padding: ${theme.spacing.xs} ${theme.spacing.base};
+  background: ${props => props.$active ? theme.colors.success : theme.colors.primary.main};
+  color: white;
+  border: none;
+  border-radius: ${theme.borderRadius.sm};
+  font-size: ${theme.typography.fontSize.xs};
+  font-weight: ${theme.typography.fontWeight.bold};
+  cursor: pointer;
+  transition: ${theme.transitions.fast};
+
+  &:hover {
+    background: ${props => props.$active ? theme.colors.success + 'dd' : theme.colors.primary.dark};
+    transform: translateY(-1px);
+  }
 `
 
 const ProblemList = styled.div`
