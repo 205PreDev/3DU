@@ -1,4 +1,4 @@
-import type { PitchParameters, SimulationResult, Vector3 } from '@/types'
+import type { PitchParameters, SimulationResult } from '@/types'
 import { runSimulation } from '@/core/physics/simulator'
 
 /**
@@ -212,29 +212,29 @@ export function analyzeSensitivity(
  */
 export function calculatePathToTarget(
   currentParams: PitchParameters,
-  targetX: number,
-  targetY: number,
+  _targetX: number,
+  _targetY: number,
   steps: number = 5
 ): Array<{ params: PitchParameters; result: SimulationResult; progress: number }> {
   const path: Array<{ params: PitchParameters; result: SimulationResult; progress: number }> = []
 
   const currentResult = runSimulation(currentParams)
-  const currentX = currentResult.finalPosition.x
-  const currentY = currentResult.plateHeight
+  // const currentX = currentResult.finalPosition.x
+  // const currentY = currentResult.plateHeight
 
-  const deltaX = targetX - currentX
-  const deltaY = targetY - currentY
+  // const deltaX = targetX - currentX
+  // const deltaY = targetY - currentY
 
   // 민감도 분석으로 어느 파라미터를 조정할지 결정
-  const sensitivity = analyzeSensitivity(currentParams)
+  // const sensitivity = analyzeSensitivity(currentParams)
 
   // X 위치에 가장 민감한 파라미터 찾기
-  const xSensitiveParams = [...sensitivity.sensitivities]
-    .sort((a, b) => Math.abs(b.finalPositionXSensitivity) - Math.abs(a.finalPositionXSensitivity))
+  // const xSensitiveParams = [...sensitivity.sensitivities]
+  //   .sort((a, b) => Math.abs(b.finalPositionXSensitivity) - Math.abs(a.finalPositionXSensitivity))
 
   // Y 위치에 가장 민감한 파라미터 찾기
-  const ySensitiveParams = [...sensitivity.sensitivities]
-    .sort((a, b) => Math.abs(b.plateHeightSensitivity) - Math.abs(a.plateHeightSensitivity))
+  // const ySensitiveParams = [...sensitivity.sensitivities]
+  //   .sort((a, b) => Math.abs(b.plateHeightSensitivity) - Math.abs(a.plateHeightSensitivity))
 
   for (let i = 0; i <= steps; i++) {
     const progress = i / steps

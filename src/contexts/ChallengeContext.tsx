@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
-import { SimulationResult, StrikeZone } from '@/types'
+import { StrikeZone } from '@/types'
 
 // 챌린지 타입 (포수 미트 추가)
 export type ChallengeType = 'target' | 'catcherMitt' | 'movement' | 'reverse'

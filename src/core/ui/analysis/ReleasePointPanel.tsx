@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import styled from 'styled-components'
 import { theme } from '@/styles/theme'
 import { useSimulation } from '@/contexts/SimulationContext'
@@ -17,9 +17,8 @@ interface ReleasePointRecord {
  * 여러 투구의 릴리즈 포인트를 기록하고 일관성을 분석
  */
 export function ReleasePointPanel() {
-  const { params, result } = useSimulation()
+  const { params } = useSimulation()
   const [records, setRecords] = useState<ReleasePointRecord[]>([])
-  const [showRecording, setShowRecording] = useState(false)
 
   // 현재 투구 기록
   const recordCurrentPitch = () => {

@@ -39,24 +39,24 @@ const Container = styled.div`
   min-height: 0;
 `
 
-const Header = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.xs};
-  padding-bottom: ${theme.spacing.sm};
-  border-bottom: 1px solid ${theme.colors.border.light};
-`
+// const Header = styled.div`
+//   display: flex;
+//   flex-direction: column;
+//   gap: ${theme.spacing.xs};
+//   padding-bottom: ${theme.spacing.sm};
+//   border-bottom: 1px solid ${theme.colors.border.light};
+// `
 
-const Title = styled.h3`
-  margin: 0;
-  font-size: ${theme.typography.fontSize.md};
-  font-weight: ${theme.typography.fontWeight.semibold};
-  color: ${theme.colors.text.primary};
-`
+// const Title = styled.h3`
+//   margin: 0;
+//   font-size: ${theme.typography.fontSize.md};
+//   font-weight: ${theme.typography.fontWeight.semibold};
+//   color: ${theme.colors.text.primary};
+// `
 
-const Description = styled.p`
-  margin: 0;
-  font-size: ${theme.typography.fontSize.sm};
-  color: ${theme.colors.text.secondary};
-  line-height: ${theme.typography.lineHeight.relaxed};
-`
+// const Description = styled.p`
+//   margin: 0;
+//   font-size: ${theme.typography.fontSize.sm};
+//   color: ${theme.colors.text.secondary};
+//   line-height: ${theme.typography.lineHeight.relaxed};
+// `

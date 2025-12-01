@@ -2,9 +2,10 @@ import { useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import { theme } from '@/styles/theme'
 import { useSimulation } from '@/contexts/SimulationContext'
-import { PitchType, PITCH_PRESETS } from '@/scenarios/pitch/presets'
+import { PitchType } from '@/types'
+import { PITCH_PRESETS } from '@/scenarios/pitch/presets'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { OrbitControls } from 'three-stdlib'
 
 interface SpinAxisVisualization {
   x: number
@@ -18,7 +19,7 @@ interface SpinAxisVisualization {
  * 공의 회전 방향을 3D로 표시하고 구종별 비교
  */
 export function SpinAxisPanel() {
-  const { params, result } = useSimulation()
+  const { params } = useSimulation()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sceneRef = useRef<{
     scene: THREE.Scene
@@ -218,55 +219,55 @@ export function SpinAxisPanel() {
   const spinAxis = calculateSpinAxis()
 
   // 구종별 평균 회전수
-  const getPresetComparison = () => {
-    if (!spinAxis) return null
+  // const getPresetComparison = () => {
+  //   if (!spinAxis) return null
 
-    const comparisons: Array<{
-      type: PitchType
-      name: string
-      spin: { x: number; y: number; z: number }
-      totalRpm: number
-      similarity: number
-    }> = []
+  //   const comparisons: Array<{
+  //     type: PitchType
+  //     name: string
+  //     spin: { x: number; y: number; z: number }
+  //     totalRpm: number
+  //     similarity: number
+  //   }> = []
 
-    Object.entries(PITCH_PRESETS).forEach(([type, preset]) => {
-      const presetSpin = preset.initial.spin
-      const presetTotal = Math.sqrt(
-        presetSpin.x ** 2 + presetSpin.y ** 2 + presetSpin.z ** 2
-      )
+  //   Object.entries(PITCH_PRESETS).forEach(([type, preset]) => {
+  //     const presetSpin = preset.initial.spin
+  //     const presetTotal = Math.sqrt(
+  //       presetSpin.x ** 2 + presetSpin.y ** 2 + presetSpin.z ** 2
+  //     )
 
-      if (presetTotal === 0) return
+  //     if (presetTotal === 0) return
 
-      // 코사인 유사도 계산
-      const dot =
-        (spinAxis.x * presetSpin.x + spinAxis.y * presetSpin.y + spinAxis.z * presetSpin.z) /
-        (spinAxis.totalRpm * presetTotal)
-      const similarity = Math.max(0, dot * 100)
+  //     // 코사인 유사도 계산
+  //     const dot =
+  //       (spinAxis.x * presetSpin.x + spinAxis.y * presetSpin.y + spinAxis.z * presetSpin.z) /
+  //       (spinAxis.totalRpm * presetTotal)
+  //     const similarity = Math.max(0, dot * 100)
 
-      comparisons.push({
-        type: type as PitchType,
-        name: getKoreanPitchName(type as PitchType),
-        spin: presetSpin,
-        totalRpm: presetTotal,
-        similarity
-      })
-    })
+  //     comparisons.push({
+  //       type: type as PitchType,
+  //       name: getKoreanPitchName(type as PitchType),
+  //       spin: presetSpin,
+  //       totalRpm: presetTotal,
+  //       similarity
+  //     })
+  //   })
 
-    return comparisons.sort((a, b) => b.similarity - a.similarity)
-  }
+  //   return comparisons.sort((a, b) => b.similarity - a.similarity)
+  // }
 
-  const getKoreanPitchName = (type: PitchType): string => {
-    const names: Record<PitchType, string> = {
-      fastball: '직구',
-      curveball: '커브',
-      slider: '슬라이더',
-      changeup: '체인지업',
-      knuckleball: '너클볼'
-    }
-    return names[type]
-  }
+  // const getKoreanPitchName = (type: PitchType): string => {
+  //   const names: Record<PitchType, string> = {
+  //     fastball: '직구',
+  //     curveball: '커브',
+  //     slider: '슬라이더',
+  //     changeup: '체인지업',
+  //     knuckleball: '너클볼'
+  //   }
+  //   return names[type]
+  // }
 
-  const comparisons = getPresetComparison()
+  // const comparisons = getPresetComparison()
 
   return (
     <Container>
@@ -376,47 +377,48 @@ const SectionTitle = styled.h4`
   color: ${theme.colors.text.primary};
 `
 
-const CanvasHint = styled.div`
-  font-size: ${theme.typography.fontSize.xs};
-  color: ${theme.colors.text.tertiary};
-  margin-bottom: ${theme.spacing.xs};
-  text-align: center;
-`
+// Unused styled components - kept for future use
+// const CanvasHint = styled.div`
+//   font-size: ${theme.typography.fontSize.xs};
+//   color: ${theme.colors.text.tertiary};
+//   margin-bottom: ${theme.spacing.xs};
+//   text-align: center;
+// `
 
-const Canvas = styled.canvas`
-  width: 100%;
-  height: 300px;
-  border-radius: ${theme.borderRadius.sm};
-  background: linear-gradient(135deg, #0f1419, #16213e);
-  cursor: grab;
+// const Canvas = styled.canvas`
+//   width: 100%;
+//   height: 300px;
+//   border-radius: ${theme.borderRadius.sm};
+//   background: linear-gradient(135deg, #0f1419, #16213e);
+//   cursor: grab;
 
-  &:active {
-    cursor: grabbing;
-  }
-`
+//   &:active {
+//     cursor: grabbing;
+//   }
+// `
 
-const Legend = styled.div`
-  display: flex;
-  gap: ${theme.spacing.base};
-  margin-top: ${theme.spacing.sm};
-  justify-content: center;
-  flex-wrap: wrap;
-`
+// const Legend = styled.div`
+//   display: flex;
+//   gap: ${theme.spacing.base};
+//   margin-top: ${theme.spacing.sm};
+//   justify-content: center;
+//   flex-wrap: wrap;
+// `
 
-const LegendItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.xs};
-  font-size: ${theme.typography.fontSize.xs};
-  color: ${theme.colors.text.secondary};
-`
+// const LegendItem = styled.div`
+//   display: flex;
+//   align-items: center;
+//   gap: ${theme.spacing.xs};
+//   font-size: ${theme.typography.fontSize.xs};
+//   color: ${theme.colors.text.secondary};
+// `
 
-const ColorBox = styled.div<{ $color: string }>`
-  width: 12px;
-  height: 12px;
-  background: ${props => props.$color};
-  border-radius: 2px;
-`
+// const ColorBox = styled.div<{ $color: string }>`
+//   width: 12px;
+//   height: 12px;
+//   background: ${props => props.$color};
+//   border-radius: 2px;
+// `
 
 const InfoGrid = styled.div`
   display: grid;
@@ -445,112 +447,112 @@ const InfoValue = styled.div<{ $color?: string }>`
   font-family: ${theme.typography.fontFamily.mono};
 `
 
-const SpinAxisVector = styled.div`
-  background: ${theme.colors.primary.main}10;
-  padding: ${theme.spacing.sm};
-  border-radius: ${theme.borderRadius.sm};
-  border-left: 3px solid ${theme.colors.primary.main};
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.xs};
-`
+// const SpinAxisVector = styled.div`
+//   background: ${theme.colors.primary.main}10;
+//   padding: ${theme.spacing.sm};
+//   border-radius: ${theme.borderRadius.sm};
+//   border-left: 3px solid ${theme.colors.primary.main};
+//   display: flex;
+//   flex-direction: column;
+//   gap: ${theme.spacing.xs};
+// `
 
-const VectorLabel = styled.div`
-  font-size: ${theme.typography.fontSize.xs};
-  color: ${theme.colors.text.secondary};
-`
+// const VectorLabel = styled.div`
+//   font-size: ${theme.typography.fontSize.xs};
+//   color: ${theme.colors.text.secondary};
+// `
 
-const VectorValue = styled.div`
-  font-size: ${theme.typography.fontSize.md};
-  font-weight: ${theme.typography.fontWeight.semibold};
-  color: ${theme.colors.primary.main};
-  font-family: ${theme.typography.fontFamily.mono};
-`
+// const VectorValue = styled.div`
+//   font-size: ${theme.typography.fontSize.md};
+//   font-weight: ${theme.typography.fontWeight.semibold};
+//   color: ${theme.colors.primary.main};
+//   font-family: ${theme.typography.fontFamily.mono};
+// `
 
-const ComparisonList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${theme.spacing.sm};
-`
+// const ComparisonList = styled.div`
+//   display: flex;
+//   flex-direction: column;
+//   gap: ${theme.spacing.sm};
+// `
 
-const ComparisonItem = styled.div<{ $rank: number }>`
-  background: ${theme.colors.background.secondary};
-  padding: ${theme.spacing.sm};
-  border-radius: ${theme.borderRadius.sm};
-  border-left: 3px solid ${props =>
-    props.$rank === 1 ? theme.colors.success :
-    props.$rank === 2 ? theme.colors.primary.main :
-    props.$rank === 3 ? theme.colors.warning :
-    theme.colors.border.light};
-`
+// const ComparisonItem = styled.div<{ $rank: number }>`
+//   background: ${theme.colors.background.secondary};
+//   padding: ${theme.spacing.sm};
+//   border-radius: ${theme.borderRadius.sm};
+//   border-left: 3px solid ${props =>
+//     props.$rank === 1 ? theme.colors.success :
+//     props.$rank === 2 ? theme.colors.primary.main :
+//     props.$rank === 3 ? theme.colors.warning :
+//     theme.colors.border.light};
+// `
 
-const ComparisonHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.sm};
-  margin-bottom: ${theme.spacing.xs};
-`
+// const ComparisonHeader = styled.div`
+//   display: flex;
+//   align-items: center;
+//   gap: ${theme.spacing.sm};
+//   margin-bottom: ${theme.spacing.xs};
+// `
 
-const RankBadge = styled.div<{ $rank: number }>`
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: ${theme.typography.fontSize.xs};
-  font-weight: ${theme.typography.fontWeight.bold};
-  background: ${props =>
-    props.$rank === 1 ? theme.colors.success :
-    props.$rank === 2 ? theme.colors.primary.main :
-    props.$rank === 3 ? theme.colors.warning :
-    theme.colors.text.tertiary};
-  color: white;
-`
+// const RankBadge = styled.div<{ $rank: number }>`
+//   width: 24px;
+//   height: 24px;
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   border-radius: 50%;
+//   font-size: ${theme.typography.fontSize.xs};
+//   font-weight: ${theme.typography.fontWeight.bold};
+//   background: ${props =>
+//     props.$rank === 1 ? theme.colors.success :
+//     props.$rank === 2 ? theme.colors.primary.main :
+//     props.$rank === 3 ? theme.colors.warning :
+//     theme.colors.text.tertiary};
+//   color: white;
+// `
 
-const PitchName = styled.div`
-  flex: 1;
-  font-size: ${theme.typography.fontSize.sm};
-  font-weight: ${theme.typography.fontWeight.semibold};
-  color: ${theme.colors.text.primary};
-`
+// const PitchName = styled.div`
+//   flex: 1;
+//   font-size: ${theme.typography.fontSize.sm};
+//   font-weight: ${theme.typography.fontWeight.semibold};
+//   color: ${theme.colors.text.primary};
+// `
 
-const SimilarityBadge = styled.div<{ $similarity: number }>`
-  font-size: ${theme.typography.fontSize.sm};
-  font-weight: ${theme.typography.fontWeight.bold};
-  color: ${props =>
-    props.$similarity >= 80 ? theme.colors.success :
-    props.$similarity >= 60 ? theme.colors.primary.main :
-    props.$similarity >= 40 ? theme.colors.warning :
-    theme.colors.error};
-  font-family: ${theme.typography.fontFamily.mono};
-`
+// const SimilarityBadge = styled.div<{ $similarity: number }>`
+//   font-size: ${theme.typography.fontSize.sm};
+//   font-weight: ${theme.typography.fontWeight.bold};
+//   color: ${props =>
+//     props.$similarity >= 80 ? theme.colors.success :
+//     props.$similarity >= 60 ? theme.colors.primary.main :
+//     props.$similarity >= 40 ? theme.colors.warning :
+//     theme.colors.error};
+//   font-family: ${theme.typography.fontFamily.mono};
+// `
 
-const ComparisonBar = styled.div`
-  width: 100%;
-  height: 8px;
-  background: ${theme.colors.background.elevated};
-  border-radius: ${theme.borderRadius.sm};
-  overflow: hidden;
-  margin-bottom: ${theme.spacing.xs};
-`
+// const ComparisonBar = styled.div`
+//   width: 100%;
+//   height: 8px;
+//   background: ${theme.colors.background.elevated};
+//   border-radius: ${theme.borderRadius.sm};
+//   overflow: hidden;
+//   margin-bottom: ${theme.spacing.xs};
+// `
 
-const ComparisonFill = styled.div<{ $similarity: number }>`
-  height: 100%;
-  width: ${props => props.$similarity}%;
-  background: linear-gradient(90deg,
-    ${theme.colors.error},
-    ${theme.colors.warning},
-    ${theme.colors.success}
-  );
-  transition: width 0.5s ease;
-`
+// const ComparisonFill = styled.div<{ $similarity: number }>`
+//   height: 100%;
+//   width: ${props => props.$similarity}%;
+//   background: linear-gradient(90deg,
+//     ${theme.colors.error},
+//     ${theme.colors.warning},
+//     ${theme.colors.success}
+//   );
+//   transition: width 0.5s ease;
+// `
 
-const ComparisonInfo = styled.div`
-  font-size: ${theme.typography.fontSize.xs};
-  color: ${theme.colors.text.tertiary};
-  font-family: ${theme.typography.fontFamily.mono};
-`
+// const ComparisonInfo = styled.div`
+//   font-size: ${theme.typography.fontSize.xs};
+//   color: ${theme.colors.text.tertiary};
+//   font-family: ${theme.typography.fontFamily.mono};
+// `
 
 const EmptyState = styled.div`
   display: flex;

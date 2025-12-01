@@ -475,11 +475,11 @@ const LastSuccess = styled.div`
   text-align: center;
 `
 
-const LoadingMessage = styled.div`
-  text-align: center;
-  padding: ${theme.spacing.xl};
-  color: ${theme.colors.text.secondary};
-`
+// const LoadingMessage = styled.div`
+//   text-align: center;
+//   padding: ${theme.spacing.xl};
+//   color: ${theme.colors.text.secondary};
+// `
 
 const ErrorMessage = styled.div`
   text-align: center;

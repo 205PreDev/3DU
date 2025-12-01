@@ -76,7 +76,7 @@ const MOVEMENT_GOALS: MovementGoal[] = [
  */
 export function MovementGoalPanel() {
   const { result } = useSimulation()
-  const { movementChallenge, startMovementChallenge, updateMovementChallenge, endMovementChallenge } = useChallenge()
+  const { movementChallenge, startMovementChallenge, endMovementChallenge } = useChallenge()
   const [selectedGoal, setSelectedGoal] = useState<MovementGoal>(MOVEMENT_GOALS[0])
   const [achievementResult, setAchievementResult] = useState<{
     achieved: boolean
